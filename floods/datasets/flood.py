@@ -47,9 +47,6 @@ class FloodDataset(DatasetBase):
                 dem_tile = Path(dem).stem.replace("_dem", "")
                 assert image_tile == dem_tile, f"image: {image_tile} != dem: {dem_tile}"
 
-    def has_background(self) -> bool:
-        return False
-
     def name(self) -> str:
         return self._name
 

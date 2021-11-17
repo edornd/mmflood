@@ -125,7 +125,7 @@ class ModelConfig(EnvConfig):
         return v
 
 
-class TrainConfig(EnvConfig):
+class TrainConfig(BaseSettings):
     seed: int = Field(1337, description="Random seed for deterministic runs")
     image_size: int = Field(512, description="Size of the input images")
     in_channels: int = Field(3, description="How many input channels, including extras")

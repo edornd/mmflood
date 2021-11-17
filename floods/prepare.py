@@ -20,8 +20,8 @@ LOG = get_logger(__name__)
 
 
 def train_transforms(image_size: int,
-                     mean: tuple = (0.485, 0.456, 0.406),
-                     std: tuple = (0.229, 0.224, 0.225),
+                     mean: tuple,
+                     std: tuple,
                      channel_dropout: float = 0.0):
     min_crop = image_size // 2
     max_crop = image_size
@@ -41,35 +41,42 @@ def train_transforms(image_size: int,
     return alb.Compose(transforms)
 
 
-def eval_transforms(mean: tuple = (0.485, 0.456, 0.406),
-                    std: tuple = (0.229, 0.224, 0.225)) -> alb.Compose:
+def eval_transforms(mean: tuple,
+                    std: tuple) -> alb.Compose:
     return alb.Compose([alb.Normalize(mean=mean, std=std), ToTensorV2()])
 
 
-def inverse_transform(mean: tuple = (0.485, 0.456, 0.406), std: tuple = (0.229, 0.224, 0.225)):
+def inverse_transform(mean: tuple, std: tuple):
     return Denormalize(mean=mean, std=std)
 
 
 def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
+    # a bit dirty, but at least check that in_channels allows for DEM if present
+    required_channels = 3 if config.include_dem else 2
+    assert config.in_channels == required_channels, \
+        f"Declared channels: {required_channels}, required: {config.in_channels}"
+
     # instantiate transforms for training and evaluation
     data_root = Path(config.data_root)
+    mean = FloodDataset.mean()[:config.in_channels]
+    std = FloodDataset.std()[:config.in_channels]
     train_transform = train_transforms(image_size=config.image_size,
+                                       mean=mean,
+                                       std=std,
                                        channel_dropout=config.channel_drop)
     # store here just for config logging purposes
     config.model.transforms = str(train_transform)
-    eval_transform = eval_transforms()
+    eval_transform = eval_transforms(mean=mean, std=std)
     # also print them, just in case
     LOG.info("Train transforms: %s", str(train_transform))
     LOG.info("Eval. transforms: %s", str(eval_transform))
     # create train and validation sets
     train_dataset = FloodDataset(path=data_root,
                                  subset="train",
-                                 ignore_index=255,
                                  include_dem=config.include_dem,
                                  transform=train_transform)
     valid_dataset = FloodDataset(path=data_root,
                                  subset="val",
-                                 ignore_index=255,
                                  include_dem=config.include_dem,
                                  transform=eval_transform)
     return train_dataset, valid_dataset

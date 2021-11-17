@@ -16,6 +16,7 @@ from floods.config.preproc import ImageType, PreparationConfig, StatsConfig
 from floods.utils import DynamicOverlapTiler, SingleImageTiler
 from floods.utils.common import check_or_make_dir, print_config
 from floods.utils.functional import imread, mask_raster, write_window
+from floods.utils.ml import F16_EPS
 
 LOG = logging.getLogger(__name__)
 
@@ -126,6 +127,10 @@ def _gather_files(sar_glob: Path,
     return sar_files, dem_files, msk_files
 
 
+def _decibel(data: np.ndarray):
+    return np.maximum(0, np.log10(data + F16_EPS) * 0.21714724095 + 1)
+
+
 def _process_tiff(image_id: str,
                   source_path: Path,
                   dst_path: Path,
@@ -158,7 +163,7 @@ def _process_tiff(image_id: str,
         with MemoryFile() as memfile:
             with memfile.open(**dataset.profile) as processed:
                 # preprocess mask if necessary
-                if image_type == ImageType.MASK and process_fn is not None:
+                if process_fn is not None:
                     processed.write(process_fn(image))
                     target = processed
                 # store result, using target raster (which could be either)
@@ -171,7 +176,7 @@ def _process_tiff(image_id: str,
     return tile_row + 1, tile_col + 1
 
 
-def prepare_data(config: PreparationConfig):
+def preprocess_data(config: PreparationConfig):
     # A couple prints just to be cool
     LOG.info("Preparing dataset...")
     print_config(LOG, config)
@@ -216,8 +221,14 @@ def prepare_data(config: PreparationConfig):
             # tile the triplets of images into NxN chips
             for sar_path, dem_path, msk_path in tqdm(list(zip(sar_files, dem_files, msk_files))):
                 image_id = Path(sar_path).stem
-                sar_tiles = _process_tiff(image_id, sar_path, subset_dir, image_type=ImageType.SAR, tiling_fn=tiler)
+                sar_process = _decibel if config.decibel else None
                 dem_tiles = _process_tiff(image_id, dem_path, subset_dir, image_type=ImageType.DEM, tiling_fn=tiler)
+                sar_tiles = _process_tiff(image_id,
+                                          sar_path,
+                                          subset_dir,
+                                          image_type=ImageType.SAR,
+                                          tiling_fn=tiler,
+                                          process_fn=sar_process)
                 msk_tiles = _process_tiff(image_id,
                                           msk_path,
                                           subset_dir,
@@ -285,7 +296,7 @@ def compute_statistics(config: StatsConfig):
         assert _extract_emsr(sar_path) == _extract_emsr(dem_path) == _extract_emsr(mask_path), "Image ID not matching"
 
         # read images
-        sar = imread(sar_path, channels_first=False)
+        sar = _decibel(imread(sar_path, channels_first=False))
         dem = imread(dem_path, channels_first=False)
         mask = imread(mask_path, channels_first=False)
         mask = mask.reshape(_dims(mask))
@@ -301,29 +312,34 @@ def compute_statistics(config: StatsConfig):
 
         valid_pixels = mask.flatten() != 255
         sar = sar.reshape((-1, sar.shape[-1]))[valid_pixels]
-        dsm = dem.reshape((-1, dem.shape[-1]))[valid_pixels]
+        dem = dem.reshape((-1, dem.shape[-1]))[valid_pixels]
 
         pixel_count += sar.shape[0]
-        ch_max = np.maximum(ch_max, np.concatenate((sar.max(axis=0), dsm.max(axis=0)), axis=-1))
-        ch_min = np.minimum(ch_min, np.concatenate((sar.min(axis=0), dsm.min(axis=0)), axis=-1))
-        ch_avg += np.concatenate((sar.sum(axis=0), dsm.sum(axis=0)), axis=-1)
+        ch_max = np.maximum(ch_max, np.concatenate((sar.max(axis=0), dem.max(axis=0)), axis=-1))
+        ch_min = np.minimum(ch_min, np.concatenate((sar.min(axis=0), dem.min(axis=0)), axis=-1))
+        ch_avg += np.concatenate((sar.sum(axis=0), dem.sum(axis=0)), axis=-1)
     ch_avg /= float(pixel_count)
+
     # second pass to compute standard deviation (could be approximated in a single pass, but it's not accurate)
     LOG.info("Computing standard deviation...")
     for sar_path, dem_path in tqdm(list(zip(sar_paths, dem_paths))):
         # read images
-        with rasterio.open(str(sar_path), "r", driver="GTiff") as src:
-            sar = src.read().transpose(1, 2, 0)
-        with rasterio.open(str(dem_path), "r", driver="GTiff") as src:
-            dem = src.read().transpose(1, 2, 0)
-        # compute
+        sar = _decibel(imread(sar_path, channels_first=False))
+        dem = imread(dem_path, channels_first=False)
+        mask = imread(mask_path, channels_first=False)
+        mask = mask.reshape(_dims(mask))
+        assert _dims(sar) == _dims(dem) == _dims(mask), f"Shape mismatch for {image_id}"
+        # prepare arrays by flattening everything except channels
         img_channels = sar.shape[-1]
         dem_channels = dem.shape[-1]
-        sar = sar.reshape((-1, img_channels))
-        dem = dem.reshape((-1, dem_channels))
+        valid_pixels = mask.flatten() != 255
+        sar = sar.reshape((-1, img_channels))[valid_pixels]
+        dem = dem.reshape((-1, dem_channels))[valid_pixels]
+        # compute variance
         image_std = ((sar - ch_avg[:img_channels])**2).sum(axis=0) / float(sar.shape[0])
-        dem_std = ((dsm - ch_avg[img_channels:])**2).sum(axis=0) / float(sar.shape[0])
+        dem_std = ((dem - ch_avg[img_channels:])**2).sum(axis=0) / float(sar.shape[0])
         ch_std += np.concatenate((image_std, dem_std), axis=-1)
+    # square it to compute std
     ch_std = np.sqrt(ch_std / len(sar_paths))
     # print stats
     print("channel-wise max: ", ch_max)

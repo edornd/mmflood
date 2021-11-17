@@ -28,6 +28,7 @@ class PreparationConfig(EnvConfig):
     tiling: bool = Field(True, description="whether to skip the tiling or not (also skips mask preprocessing)")
     tile_size: int = Field(512, description="base dimension of the squared tile")
     tile_max_overlap: int = Field(400, description="how much the tiles can overlap before skipping the next one")
+    decibel: bool = Field(True, description="Apply a log10 transformation to the SAR signal")
     morphology: bool = Field(True, description="whether to use morphological operators or not")
     morph_kernel: int = Field(5, description="Kernel size for mask preprocessing using opening/closing")
     nan_threshold: float = Field(0.75, description="Percentage of invalid pixels before discaring the tile")

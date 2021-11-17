@@ -1,16 +1,16 @@
 from pathlib import Path
 
 import torch
-from accelerate import Accelerator
 from torch.utils.data import DataLoader
 
+from accelerate import Accelerator
 from floods.config import TrainConfig
 from floods.logging.tensorboard import TensorBoardLogger
 from floods.prepare import inverse_transform, prepare_datasets, prepare_metrics, prepare_model
-from floods.trainer import Trainer
 from floods.trainer.callbacks import Checkpoint, DisplaySamples, EarlyStopping, EarlyStoppingCriterion
+from floods.trainer.flood import FloodTrainer
 from floods.utils.common import flatten_config, get_logger, git_revision_hash, init_experiment, store_config
-from floods.utils.ml import seed_everything, seed_worker
+from floods.utils.ml import load_class_weights, seed_everything, seed_worker
 
 LOG = get_logger(__name__)
 
@@ -39,7 +39,7 @@ def train(config: TrainConfig):
 
     # seeding everything
     LOG.info("Using seed: %d", config.seed)
-    seed_everything(config.seed)
+    seed_everything(config.seed, deterministic=True)
     # prepare datasets
     LOG.info("Loading datasets...")
     train_set, valid_set = prepare_datasets(config=config)
@@ -67,9 +67,7 @@ def train(config: TrainConfig):
     # prepare losses
     weights = None
     if config.class_weights:
-        weights = train_set.load_class_weights(Path(config.class_weights),
-                                               device=accelerator.device,
-                                               normalize=config.ce.tversky)
+        weights = load_class_weights(Path(config.class_weights), device=accelerator.device, normalize=False)
         LOG.info("Using class weights: %s", str(weights))
     loss = config.loss.instantiate(ignore_index=255, weight=weights)
 
@@ -85,16 +83,17 @@ def train(config: TrainConfig):
     LOG.info("Visualize: %s, num. batches for visualization: %s", str(config.visualize), str(config.num_samples))
     num_samples = int(config.visualize) * config.num_samples
     # choose trainer class depending on task or regularization
-    trainer = Trainer(accelerator=accelerator,
-                      model=new_model,
-                      optimizer=optimizer,
-                      scheduler=scheduler,
-                      criterion=loss,
-                      train_metrics=train_metrics,
-                      val_metrics=valid_metrics,
-                      logger=logger,
-                      sample_batches=num_samples,
-                      debug=config.debug)
+    trainer = FloodTrainer(accelerator=accelerator,
+                           model=new_model,
+                           optimizer=optimizer,
+                           scheduler=scheduler,
+                           criterion=loss,
+                           categories=train_set.categories(),
+                           train_metrics=train_metrics,
+                           val_metrics=valid_metrics,
+                           logger=logger,
+                           sample_batches=num_samples,
+                           debug=config.debug)
     trainer.add_callback(EarlyStopping(call_every=1,
                                        metric=monitored,
                                        criterion=EarlyStoppingCriterion.maximum,
@@ -102,7 +101,7 @@ def train(config: TrainConfig):
            .add_callback(Checkpoint(call_every=1,
                                     model_folder=model_folder,
                                     save_best=True)) \
-           .add_callback(DisplaySamples(inverse_transform=inverse_transform(),
+           .add_callback(DisplaySamples(inverse_transform=inverse_transform(mean=train_set.mean(), std=train_set.std()),
                                         color_palette=train_set.palette()))
     # storing config and starting training
     config.version = git_revision_hash()

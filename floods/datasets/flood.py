@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 
 import numpy as np
+import torch
 from torch import Tensor
 
 from floods.datasets.base import DatasetBase
@@ -11,17 +12,19 @@ from floods.utils.functional import imread
 
 class FloodDataset(DatasetBase):
 
+    _name = "flood"
     _categories = {0: "background", 1: "flood"}
     _palette = {0: (0, 0, 0), 1: (255, 255, 255), 255: (255, 0, 255)}
+    _ignore_index = 255
+    _mean = (0.5263605313385773, 0.2356325754443956, 163.95)
+    _std = (0.21251460443641174, 0.1750975830046255, 231.02)
 
     def __init__(self,
                  path: Path,
                  subset: str = "train",
-                 ignore_index: int = 255,
                  include_dem: bool = False,
                  transform: Callable = None) -> None:
         super().__init__()
-        self._ignore_index = ignore_index
         self._include_dem = include_dem
         self._name = "flood"
         self._subset = subset
@@ -47,20 +50,32 @@ class FloodDataset(DatasetBase):
                 dem_tile = Path(dem).stem.replace("_dem", "")
                 assert image_tile == dem_tile, f"image: {image_tile} != dem: {dem_tile}"
 
-    def name(self) -> str:
-        return self._name
+    @classmethod
+    def name(cls) -> str:
+        return cls._name
+
+    @classmethod
+    def categories(cls) -> Dict[int, str]:
+        return cls._categories
+
+    @classmethod
+    def palette(cls) -> Dict[int, tuple]:
+        return cls._palette
+
+    @classmethod
+    def ignore_index(cls) -> int:
+        return cls._ignore_index
+
+    @classmethod
+    def mean(cls) -> Tuple[float, ...]:
+        return cls._mean
+
+    @classmethod
+    def std(cls) -> Tuple[float, ...]:
+        return cls._std
 
     def stage(self) -> str:
         return self._subset
-
-    def categories(self) -> Dict[int, str]:
-        return self._categories
-
-    def palette(self) -> Dict[int, tuple]:
-        return self._palette
-
-    def ignore_index(self) -> int:
-        return self._ignore_index
 
     def add_mask(self, mask: List[bool], stage: str = None) -> None:
         assert len(mask) == len(self.image_files), \
@@ -82,16 +97,19 @@ class FloodDataset(DatasetBase):
         :rtype: Tuple[torch.Tensor, torch.Tensor]
         """
         image = imread(self.image_files[index], channels_first=False).astype(np.float32)
-        label = imread(self.label_files[index], channels_first=False).astype(np.uint8)
+        label = imread(self.label_files[index]).squeeze(0).astype(np.uint8)
         # add digital elevation map as extra channel to the image
         if self._include_dem:
-            dem = imread(self.dem_files[index]).astype(np.float32)
+            dem = imread(self.dem_files[index], channels_first=False).astype(np.float32)
             image = np.dstack((image, dem))
         # preprocess if required, cast mask to Long for torch losses
         if self.transform is not None:
             pair = self.transform(image=image, mask=label)
             image = pair.get("image")
             label = pair.get("mask")
+        else:
+            image = torch.from_numpy(image.transpose(2, 0, 1))
+            label = torch.from_numpy(label)
         return image, label
 
     def __len__(self) -> int:

@@ -88,3 +88,14 @@ def find_best_checkpoint(folder: Path, model_name: str = "*.pth", divider: str =
             current_best = model_path
 
     return current_best
+
+
+def load_class_weights(weights_path: Path, device: torch.device, normalize: bool = False) -> torch.Tensor:
+    # load class weights, if any
+    if weights_path is None or not weights_path.exists() or not weights_path.is_file():
+        raise ValueError(f"Path '{str(weights_path)}' does not exist or it's not a numpy array")
+
+    weights = np.load(weights_path).astype(np.float32)
+    if normalize:
+        weights /= weights.max()
+    return torch.from_numpy(weights).to(device)

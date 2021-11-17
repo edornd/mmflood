@@ -1,16 +1,17 @@
 from clidantic import Parser
+from tqdm.contrib.logging import logging_redirect_tqdm
+
 from floods import preproc, testing, training
 from floods.config import PreparationConfig, StatsConfig, TrainConfig
 from floods.config.testing import TestConfig
 from floods.utils.common import prepare_logging
-from tqdm.contrib.logging import logging_redirect_tqdm
 
 cli = Parser()
 
 
 @cli.command()
-def prepare(config: PreparationConfig):
-    return preproc.prepare_data(config=config)
+def preprocess(config: PreparationConfig):
+    return preproc.preprocess_data(config=config)
 
 
 @cli.command()

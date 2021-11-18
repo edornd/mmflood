@@ -130,3 +130,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# custom folders/files
+train.sh
+accelerate
+accelerate/*

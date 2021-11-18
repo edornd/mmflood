@@ -1,0 +1,1607 @@
+{
+    "EMSR446": {
+        "title": "Flood in Uganda",
+        "type": "Flood",
+        "country": "Uganda",
+        "start": "2020-07-21T07:59:00",
+        "end": "2020-07-28T14:20:43",
+        "lat": 0.6297645012334081,
+        "lon": 30.7828640247248,
+        "subset": "train",
+        "delineations": [
+            "EMSR446_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR446_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR446_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR437": {
+        "title": "Flood in South West of France",
+        "type": "Flood",
+        "country": "France",
+        "start": "2020-05-10T19:35:00",
+        "end": "2020-05-13T17:33:19",
+        "lat": 43.804043897262865,
+        "lon": -0.7148761509550047,
+        "subset": "train",
+        "delineations": [
+            "EMSR437_AOI08_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR437_AOI07_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR437_AOI06_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR437_AOI05_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR437_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR437_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR437_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR437_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR314": {
+        "title": "Floods in Nigeria",
+        "type": "Flood",
+        "country": "Nigeria",
+        "start": "2018-09-18T21:27:00",
+        "end": "2018-09-22T16:45:16",
+        "lat": 7.0719765869732125,
+        "lon": 6.646896771435269,
+        "subset": "train",
+        "delineations": [
+            "EMSR314_04OTUOCHAAGULERI_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR314_05ONITSHA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR314_03ENUGUOTU_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR314_01PATEGI_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR314_02LOKOJA_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR456": {
+        "title": "Flood in North Caribbean Region, Nicaragua",
+        "type": "Flood",
+        "country": "Nicaragua",
+        "start": "2020-08-24T19:00:00",
+        "end": "2020-08-25T19:03:36",
+        "lat": 14.086086934244364,
+        "lon": -83.48275935480308,
+        "subset": "test",
+        "delineations": [
+            "EMSR456_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR456_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR456_AOI08_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR456_AOI09_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR456_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR456_AOI05_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR479": {
+        "title": "Flood in Tabasco, Mexico",
+        "type": "Flood",
+        "country": "Mexico",
+        "start": "2020-11-08T00:46:00",
+        "end": "2020-11-09T22:14:38",
+        "lat": 17.93289024307587,
+        "lon": -92.91616235329485,
+        "subset": "train",
+        "delineations": [
+            "EMSR479_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR479_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR414": {
+        "title": "Floods in Austria",
+        "type": "Flood",
+        "country": "Austria",
+        "start": "2019-11-27T12:33:00",
+        "end": "2019-11-29T16:36:35",
+        "lat": 46.66204746382496,
+        "lon": 13.759144800290668,
+        "subset": "val",
+        "delineations": [
+            "EMSR414_AOI02_DEL_PRODUCT_r1_VECTORS_v2_vector.zip"
+        ]
+    },
+    "EMSR199": {
+        "title": "Floods in Peru",
+        "type": "Flood",
+        "country": "Peru",
+        "start": "2017-03-22T10:08:00",
+        "end": "2017-04-28T11:42:42",
+        "lat": -6.229079960929629,
+        "lon": -79.98631289233442,
+        "subset": "train",
+        "delineations": [
+            "EMSR199_10PIURA_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR199_08SULLANA_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR199_06ROMA_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR199_12PIURANORTH_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR199_14SALINAS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR199_13TRUJILLO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR199_11PARACHIQUE_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR199_05HUAURA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR199_01LIMA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR199_03CHACLACAYO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR199_02ATE_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR199_09IQUITOS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR199_04COMAS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR199_07CIUDADDEDIOS_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR397": {
+        "title": "Flood in Segre River Basin, Spain",
+        "type": "Flood",
+        "country": "Spain",
+        "start": "2019-10-22T12:25:00",
+        "end": "2019-10-28T14:17:50",
+        "lat": 41.601944392814254,
+        "lon": 0.8049678934616564,
+        "subset": "train",
+        "delineations": [
+            "EMSR397_AOI01_DEL_PRODUCT_r1_VECTORS_v3_vector.zip",
+            "EMSR397_AOI07_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR268": {
+        "title": "Flood in Central and Eastern Latvia",
+        "type": "Flood",
+        "country": "Latvia",
+        "start": "2018-02-02T19:35:00",
+        "end": "2018-02-15T17:55:05",
+        "lat": 56.6122803196487,
+        "lon": 24.17173355849269,
+        "subset": "test",
+        "delineations": [
+            "EMSR268_01DAUGAVA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR268_02LIELUPE_01DELINEATION_MAP_v2_vector.zip"
+        ]
+    },
+    "EMSR337": {
+        "title": "Flood in Western Greece",
+        "type": "Flood",
+        "country": "Greece",
+        "start": "2019-01-14T13:14:00",
+        "end": "2019-01-17T17:38:55",
+        "lat": 37.62936809785711,
+        "lon": 21.599142274956293,
+        "subset": "train",
+        "delineations": [
+            "EMSR337_01ALFEIOSWEST_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR337_02ALFEIOSEAST_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR518": {
+        "title": "Flood in Belgium",
+        "type": "Flood",
+        "country": "Belgium, Netherlands",
+        "start": "2021-07-14T14:00:00",
+        "end": "2021-07-15T18:36:22",
+        "lat": 50.579090012414056,
+        "lon": 5.568159570856119,
+        "subset": "val",
+        "delineations": [
+            "EMSR518_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR518_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR548": {
+        "title": "Flood in Eastern Sicily, Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2021-10-27T11:31:00",
+        "end": "2021-10-28T12:35:19",
+        "lat": 37.435056244442684,
+        "lon": 14.954437192250033,
+        "subset": "test",
+        "delineations": [
+            "EMSR548_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR438": {
+        "title": "Flood in Uganda",
+        "type": "Flood",
+        "country": "Uganda",
+        "start": "2020-05-15T12:42:00",
+        "end": "2020-05-27T14:32:26",
+        "lat": 0.5102387684010204,
+        "lon": 32.92619976690656,
+        "subset": "train",
+        "delineations": [
+            "EMSR438_AOI05_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR438_AOI07_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR438_AOI06_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR438_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR438_AOI03_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR438_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR438_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR154": {
+        "title": "Floods in Roscommon",
+        "type": "Flood",
+        "country": "Ireland",
+        "start": "2016-02-05T10:33:00",
+        "end": "2016-02-08T11:11:44",
+        "lat": 53.56399896837203,
+        "lon": -8.219191879632055,
+        "subset": "test",
+        "delineations": [
+            "EMSR154_01CASTELPLUNKET_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR154_03CUILLEENIRWAN_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR154_02LOUGHFUNSHINAGH_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR470": {
+        "title": "Flood in Togo",
+        "type": "Flood",
+        "country": "Togo",
+        "start": "2020-10-13T19:17:00",
+        "end": "2020-10-16T17:47:37",
+        "lat": 10.347164668958925,
+        "lon": 0.5400064509820194,
+        "subset": "test",
+        "delineations": [
+            "EMSR470_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip"
+        ]
+    },
+    "EMSR496": {
+        "title": "Flood in Lazio Region, Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2021-01-27T17:31:00",
+        "end": "2021-01-28T18:39:45",
+        "lat": 42.418519428933514,
+        "lon": 12.815961407528903,
+        "subset": "test",
+        "delineations": [
+            "EMSR496_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR497": {
+        "title": "Flood in Germany",
+        "type": "Flood",
+        "country": "Germany",
+        "start": "2021-02-01T13:42:00",
+        "end": "2021-02-03T11:50:14",
+        "lat": 51.51183150430578,
+        "lon": 6.558735676973034,
+        "subset": "train",
+        "delineations": [
+            "EMSR497_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR501": {
+        "title": "Flood in Albania",
+        "type": "Flood",
+        "country": "Albania",
+        "start": "2021-02-12T16:50:00",
+        "end": "2021-02-13T06:57:39",
+        "lat": 41.97105188965551,
+        "lon": 19.408419122613278,
+        "subset": "train",
+        "delineations": [
+            "EMSR501_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR187": {
+        "title": "Floods in Romania",
+        "type": "Flood",
+        "country": "Romania",
+        "start": "2016-10-12T20:41:00",
+        "end": "2016-10-15T03:18:04",
+        "lat": 45.497936969335456,
+        "lon": 27.771859417957533,
+        "subset": "train",
+        "delineations": [
+            "EMSR187_01GALATI_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR187_02PECHEA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR187_03CUZAVODA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR187_04NEGREA_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR167": {
+        "title": "Floods in Limburg Province, Belgium",
+        "type": "Flood",
+        "country": "Belgium",
+        "start": "2016-06-02T17:29:00",
+        "end": "2016-06-08T17:40:03",
+        "lat": 51.048052895144295,
+        "lon": 5.227129397511835,
+        "subset": "test",
+        "delineations": [
+            "EMSR167_01LIER_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR167_02GEEL_DELINEATION_OVERVIEW_v3_vector.zip",
+            "EMSR167_04HASSELT_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR167_03NEERPELT_DELINEATION_OVERVIEW_v2_vector.zip"
+        ]
+    },
+    "EMSR450": {
+        "title": "Flood in Vietnam",
+        "type": "Flood",
+        "country": "Vietnam",
+        "start": "2020-08-03T04:11:00",
+        "end": "2020-08-06T08:53:04",
+        "lat": 18.660126730594726,
+        "lon": 105.67254565083013,
+        "subset": "train",
+        "delineations": [
+            "EMSR450_AOI04_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR450_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR450_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR410": {
+        "title": "Flood in Djibouti",
+        "type": "Flood",
+        "country": "Djibouti",
+        "start": "2019-11-22T11:51:00",
+        "end": "2019-11-27T21:48:16",
+        "lat": 11.576078487634751,
+        "lon": 43.092023550322736,
+        "subset": "train",
+        "delineations": [
+            "EMSR410_AOI01_DEL_PRODUCT_r1_VECTORS_v3_vector.zip"
+        ]
+    },
+    "EMSR492": {
+        "title": "Flood in Landes, France",
+        "type": "Flood",
+        "country": "France",
+        "start": "2021-01-01T19:14:00",
+        "end": "2021-01-02T16:05:32",
+        "lat": 43.70689970615777,
+        "lon": -1.0137585019191808,
+        "subset": "test",
+        "delineations": [
+            "EMSR492_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR399": {
+        "title": "Flood in Can Tho, Vietnam",
+        "type": "Flood",
+        "country": "Vietnam",
+        "start": "2019-10-24T14:04:00",
+        "end": "2019-10-29T18:04:16",
+        "lat": 10.037945370000045,
+        "lon": 105.71880270900007,
+        "subset": "train",
+        "delineations": [
+            "EMSR399_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR324": {
+        "title": "Floods in Aude, France",
+        "type": "Flood",
+        "country": "France",
+        "start": "2018-10-15T13:32:00",
+        "end": "2018-10-16T12:02:57",
+        "lat": 43.21839053689277,
+        "lon": 2.715590698437973,
+        "subset": "test",
+        "delineations": [
+            "EMSR324_02PUICHERIC_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR324_01CARCASSONNE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR324_04LESPIGNAN_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR324_03MOUSSAN_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR417": {
+        "title": "Flood in Portugal",
+        "type": "Flood",
+        "country": "Portugal",
+        "start": "2019-12-23T14:22:00",
+        "end": "2020-01-07T12:22:26",
+        "lat": 40.138251028658715,
+        "lon": -8.6727608850584,
+        "subset": "train",
+        "delineations": [
+            "EMSR417_AOI01_DEL_PRODUCT_r1_VECTORS_v3_vector.zip"
+        ]
+    },
+    "EMSR283": {
+        "title": "Floods in Norway",
+        "type": "Flood",
+        "country": "Norway",
+        "start": "2018-05-10T21:00:00",
+        "end": "2018-06-20T13:48:04",
+        "lat": 60.68989555526485,
+        "lon": 11.686979575032616,
+        "subset": "train",
+        "delineations": [
+            "EMSR283_10OTTA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR283_04BRASKEREIDFOSS_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR283_03ELVERUM_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR283_02TRYSIL_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR283_08SKARNES_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR283_07KONGSVINGER_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR283_06GRINDER_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR283_05FLISA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR283_09LILLESTROM_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR283_01JORDET_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR468": {
+        "title": "Flood in Piedmont region, Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2020-10-04T16:18:00",
+        "end": "2020-10-07T00:38:20",
+        "lat": 44.9827760458327,
+        "lon": 8.3457058017143,
+        "subset": "test",
+        "delineations": [
+            "EMSR468_AOI05_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR468_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR342": {
+        "title": "Flood in Townsville, Australia",
+        "type": "Flood",
+        "country": "Australia",
+        "start": "2019-02-01T04:45:00",
+        "end": "2019-03-22T15:58:14",
+        "lat": -19.931717373908054,
+        "lon": 142.7496048549199,
+        "subset": "val",
+        "delineations": [
+            "EMSR342_01TOWNSVILLE_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR342_07SOUTHNORMANTON_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR342_06NORTHNORMANTON_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR342_05RICHMOND_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR342_04JULIACREEK_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR342_03CLONCURRY_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR342_02BLUEWATER_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR151": {
+        "title": "Flood in Northern Ireland",
+        "type": "Flood",
+        "country": "United Kingdom",
+        "start": "2016-01-11T16:11:00",
+        "end": "2016-01-13T22:20:05",
+        "lat": 54.403235598516446,
+        "lon": -6.976549147813708,
+        "subset": "test",
+        "delineations": [
+            "EMSR151_04KESH_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR151_03BELLEEK_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR151_02LURGAN_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR151_01ANTRIM_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR151_05ENNISKILLEN_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR151_06LISNASKEA_DELINEATION_OVERVIEW_v2_vector.zip"
+        ]
+    },
+    "EMSR147": {
+        "title": "Flood in Cumbria",
+        "type": "Flood",
+        "country": "United Kingdom",
+        "start": "2015-12-05T23:14:00",
+        "end": "2015-12-08T01:54:48",
+        "lat": 54.48844536483131,
+        "lon": -2.6590628145466373,
+        "subset": "test",
+        "delineations": [
+            "EMSR147_01CARLISLE_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR147_03APPLEBY_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR147_04KENDAL_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR147_02COCKERMOUTH_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR122": {
+        "title": "Flood in Greece",
+        "type": "Flood",
+        "country": "Greece",
+        "start": "2015-03-31T12:41:00",
+        "end": "2015-04-02T20:27:31",
+        "lat": 40.9345219369562,
+        "lon": 23.647694328553225,
+        "subset": "train",
+        "delineations": [
+            "EMSR122_01STRYMONAS_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR122_02BALTOTOPI_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR122_04MAVROTHALASSA_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR122_03ACHINOS_DELINEATION_OVERVIEW_v2_vector.zip"
+        ]
+    },
+    "EMSR471": {
+        "title": "Flood in Slovakia",
+        "type": "Flood",
+        "country": "Slovakia",
+        "start": "2020-10-14T16:53:00",
+        "end": "2020-10-21T10:31:40",
+        "lat": 48.58462328159498,
+        "lon": 17.59155245430886,
+        "subset": "train",
+        "delineations": [
+            "EMSR471_AOI05_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR471_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR471_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR471_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR471_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR358": {
+        "title": "Flood in Bosnia and Herzegovina",
+        "type": "Flood",
+        "country": "Bosnia and Herze...",
+        "start": "2019-05-14T14:17:00",
+        "end": "2019-05-28T14:35:43",
+        "lat": 45.07761076664424,
+        "lon": 17.313993160288653,
+        "subset": "test",
+        "delineations": [
+            "EMSR358_AOI05_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR358_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR358_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR421": {
+        "title": "Flood in Occitanie, France",
+        "type": "Flood",
+        "country": "France",
+        "start": "2020-01-22T20:27:00",
+        "end": "2020-01-24T05:44:30",
+        "lat": 42.899126314630905,
+        "lon": 2.2815213571171067,
+        "subset": "val",
+        "delineations": [
+            "EMSR421_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR421_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR421_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR421_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR421_AOI05_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR422": {
+        "title": "Floods in Girona and Mediterranean coast,...",
+        "type": "Flood",
+        "country": "Spain",
+        "start": "2020-01-23T15:52:00",
+        "end": "2020-02-03T18:27:43",
+        "lat": 41.23837881190384,
+        "lon": 1.8256644594197484,
+        "subset": "train",
+        "delineations": [
+            "EMSR422_AOI05_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR422_AOI06_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR422_AOI07_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR422_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR422_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip"
+        ]
+    },
+    "EMSR120": {
+        "title": "Flood in Spain",
+        "type": "Flood",
+        "country": "Spain",
+        "start": "2015-02-27T09:02:00",
+        "end": "2015-02-28T17:08:37",
+        "lat": 41.708461343069345,
+        "lon": -0.9460801154799963,
+        "subset": "train",
+        "delineations": [
+            "EMSR120_01EBROBASIN_DELINEATION_DETAIL01_v1_vector.zip",
+            "EMSR120_01EBROBASIN_DELINEATION_DETAIL02_v1_vector.zip",
+            "EMSR120_01EBROBASIN_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR120_01EBROBASIN_DELINEATION_DETAIL03_v1_vector.zip"
+        ]
+    },
+    "EMSR287": {
+        "title": "Flood in Saxony",
+        "type": "Flood",
+        "country": "Germany",
+        "start": "2018-05-25T12:44:00",
+        "end": "2018-05-27T10:17:32",
+        "lat": 50.43260863696683,
+        "lon": 12.083476981362718,
+        "subset": "test",
+        "delineations": [
+            "EMSR287_03ELSTERBERG_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR287_02NEUMARK_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR287_01ZWICKAU_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR287_05MAGWITZ_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR287_07BADELSTER_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR287_04PLAUEN_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR287_06MUHLENTAL_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR416": {
+        "title": "Flood in Landes, France",
+        "type": "Flood",
+        "country": "France",
+        "start": "2019-12-13T20:08:00",
+        "end": "2019-12-17T09:37:04",
+        "lat": 43.564921774904036,
+        "lon": -1.1954072454393745,
+        "subset": "train",
+        "delineations": [
+            "EMSR416_AOI02_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR416_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR238": {
+        "title": "Flood in Tuscany, Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2017-09-10T18:33:00",
+        "end": "2017-09-13T18:36:02",
+        "lat": 43.61328857287478,
+        "lon": 10.406299035559329,
+        "subset": "val",
+        "delineations": [
+            "EMSR238_04ROSIGNANO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR238_02ARDENZAMONTENERO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR238_01STAGNO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR238_03QUERCIANELLA_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR487": {
+        "title": "Flood in Emilia-Romagna Region, Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2020-12-06T14:26:00",
+        "end": "2020-12-08T00:11:36",
+        "lat": 44.68367483016257,
+        "lon": 11.042280950894666,
+        "subset": "train",
+        "delineations": [
+            "EMSR487_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR258": {
+        "title": "Flood in Albania",
+        "type": "Flood",
+        "country": "Albania",
+        "start": "2017-12-01T09:38:00",
+        "end": "2018-01-16T17:19:57",
+        "lat": 40.69272004644062,
+        "lon": 19.60526965757391,
+        "subset": "val",
+        "delineations": [
+            "EMSR258_14FUSHEKRUJE_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR258_11POLICAN_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR258_10URAVAJGURORE_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR258_09GRAMSCH_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR258_08BELSH_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR258_05PATOS_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR258_04NOVOSELE_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR258_03KOLONJE_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR258_02TOPOJE_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR258_01DIVJAKE_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR258_13TEPELENE_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR258_12SEVASTER_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR258_07ARMEN_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR258_06VLORE_01DELINEATION_MAP_v2_vector.zip"
+        ]
+    },
+    "EMSR156": {
+        "title": "Floods in Roscommon II",
+        "type": "Flood",
+        "country": "Ireland",
+        "start": "2016-03-08T09:53:00",
+        "end": "2016-03-10T00:35:19",
+        "lat": 53.639513093590665,
+        "lon": -8.22036547569296,
+        "subset": "train",
+        "delineations": [
+            "EMSR156_02LOUGHFUNSHINAGH_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR156_01CASTELPLUNKET_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR150": {
+        "title": "Flood in England",
+        "type": "Flood",
+        "country": "United Kingdom",
+        "start": "2015-12-28T10:25:00",
+        "end": "2015-12-30T18:32:02",
+        "lat": 53.90305351150545,
+        "lon": -1.5653260085749232,
+        "subset": "train",
+        "delineations": [
+            "EMSR150_04HEBDENBRIDGE_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR150_07HARROGATE_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR150_01YORK_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR150_05SHIPLEY_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR150_03CROSSHILLS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR150_02SELBY_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR150_06BRADFORD_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR150_08LEEDS_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR141": {
+        "title": "Flooding and landslides in Campania, Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2015-10-16T01:15:00",
+        "end": "2015-10-18T13:18:31",
+        "lat": 41.04521843074906,
+        "lon": 13.983329665475452,
+        "subset": "test",
+        "delineations": [
+            "EMSR141_04CAPUA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR141_03CAIAZZO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR141_05CASTELVOLTURNO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR141_01BENEVENTO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR141_02TELESE_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR265": {
+        "title": "Floods in Northern France",
+        "type": "Flood",
+        "country": "France",
+        "start": "2018-01-23T19:17:00",
+        "end": "2018-02-07T12:13:37",
+        "lat": 48.616610218103396,
+        "lon": 3.165345495219578,
+        "subset": "train",
+        "delineations": [
+            "EMSR265_20BRIENNELECHATEAU_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR265_11VILLENEUVE-SUR-YONNE_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR265_10SENS_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR265_24HONFLEUR_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_25ELBEUF_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_26VERNON_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_09VOULX_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR265_08FONTAINEBLEAU_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR265_06PARISOVERVIEW_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR265_05NOISY-LE-GRAND_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR265_23LESBORDES_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_22LESMUREAUX_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_21BARSURSEINE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_19TROYES_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_15EPERNAY_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_18ARCISSURAUBE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_14MONTMIRAIL_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_17ROMILLYSURSEINE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_16NOGENTSURSEINE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_02CRETEIL_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_07DAMMARIE-LES-LYS_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_13AUXERRE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_03PARIS_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_04ESBLY_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_12BONNARD_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR265_01DRAVEIL_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR465": {
+        "title": "Floods in Thessaly Region, Greece",
+        "type": "Flood",
+        "country": "Greece",
+        "start": "2020-09-19T09:46:00",
+        "end": "2020-09-20T23:53:27",
+        "lat": 39.43981251116905,
+        "lon": 22.08379327593438,
+        "subset": "test",
+        "delineations": [
+            "EMSR465_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR267": {
+        "title": "Flood in Silute, Lithuania",
+        "type": "Flood",
+        "country": "Lithuania",
+        "start": "2018-02-01T15:42:00",
+        "end": "2018-02-02T21:56:28",
+        "lat": 55.308856868753935,
+        "lon": 21.399729150000013,
+        "subset": "train",
+        "delineations": [
+            "EMSR267_01RUSNE_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR411": {
+        "title": "Flood in South East France",
+        "type": "Flood",
+        "country": "France",
+        "start": "2019-11-23T20:03:00",
+        "end": "2019-11-25T13:13:28",
+        "lat": 43.442514077377474,
+        "lon": 6.663651148333362,
+        "subset": "test",
+        "delineations": [
+            "EMSR411_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR498": {
+        "title": "Flood in Corr\u00e8ze department, France",
+        "type": "Flood",
+        "country": "France",
+        "start": "2021-02-02T01:08:00",
+        "end": "2021-02-03T10:16:38",
+        "lat": 44.96232497691554,
+        "lon": 1.672932191250041,
+        "subset": "test",
+        "delineations": [
+            "EMSR498_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip"
+        ]
+    },
+    "EMSR502": {
+        "title": "Flood in Southern Ireland",
+        "type": "Flood",
+        "country": "Ireland",
+        "start": "2021-02-23T10:29:00",
+        "end": "2021-02-26T15:30:40",
+        "lat": 52.07948105574994,
+        "lon": -8.495618948288616,
+        "subset": "test",
+        "delineations": [
+            "EMSR502_AOI05_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR502_AOI07_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR502_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR502_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR502_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR502_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR118": {
+        "title": "Flood in Spain",
+        "type": "Flood",
+        "country": "Spain",
+        "start": "2015-02-02T14:30:00",
+        "end": "2015-02-04T19:07:54",
+        "lat": 41.747479693954425,
+        "lon": -1.052661453254088,
+        "subset": "train",
+        "delineations": [
+            "EMSR118_01ZARAGOZA_DELINEATION_DETAIL02_v1_vector.zip",
+            "EMSR118_01ZARAGOZA_DELINEATION_DETAIL01_v1_vector.zip",
+            "EMSR118_02TRESPADERNE_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR118_01ZARAGOZA_DELINEATION_DETAIL03_v1_vector.zip",
+            "EMSR118_01ZARAGOZA_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR149": {
+        "title": "Flood in Ireland",
+        "type": "Flood",
+        "country": "Ireland",
+        "start": "2015-12-08T22:12:00",
+        "end": "2016-01-11T00:47:37",
+        "lat": 53.29254895141577,
+        "lon": -8.115857539268765,
+        "subset": "test",
+        "delineations": [
+            "EMSR149_11CLAREMORRIS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_08GORT_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_10BELTURBET_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_13PORTUMNA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_12BALLINASLOE_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_09ROSCOMMON_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_07ENNISCORTHY_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_05ENNIS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_06COROFIN_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_04CASTLECONNELL_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_02ATHLONE_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_03LIMERICK_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR149_01CARRICKONSHANNON_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR215": {
+        "title": "Flood in Braunschweig",
+        "type": "Flood",
+        "country": "Germany",
+        "start": "2017-07-27T08:16:00",
+        "end": "2017-08-09T15:17:07",
+        "lat": 52.26922691835804,
+        "lon": 10.528442382116658,
+        "subset": "train",
+        "delineations": [
+            "EMSR215_01BRAUNSCHWEIG_01DELINEATION_MAP_v2_vector.zip"
+        ]
+    },
+    "EMSR261": {
+        "title": "Floods in Lower Saxony, Germany",
+        "type": "Flood",
+        "country": "Germany",
+        "start": "2017-12-14T21:47:00",
+        "end": "2018-01-17T15:50:12",
+        "lat": 52.24154233063524,
+        "lon": 10.045856236440049,
+        "subset": "train",
+        "delineations": [
+            "EMSR261_02EINBECK_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR261_01HANNOVER_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR261_03WOLFSBURG_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR504": {
+        "title": "Floods, Australia",
+        "type": "Flood",
+        "country": "Australia",
+        "start": "2021-03-20T12:40:00",
+        "end": "2021-03-25T15:45:37",
+        "lat": -31.708255967022698,
+        "lon": 151.81609948263517,
+        "subset": "test",
+        "delineations": [
+            "EMSR504_AOI08_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR504_AOI11_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR504_AOI09_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR504_AOI10_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR504_AOI02_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR504_AOI03_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR504_AOI06_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR504_AOI07_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR504_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR504_AOI05_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR504_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR333": {
+        "title": "Flood in Sicily, Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2018-11-04T19:52:00",
+        "end": "2018-12-05T10:48:14",
+        "lat": 37.50400296600006,
+        "lon": 13.231553106000035,
+        "subset": "test",
+        "delineations": [
+            "EMSR333_04RIBERA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR333_05BIVONA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR333_09SANLEONE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR333_03SCIACCA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR333_08REALMONTE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR333_13TORRECOLONNASPERONE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR333_12BAGHERIA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR333_11PALERMOEAST_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR333_10PALERMOCENTRE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR333_07MONTALLEGRO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR333_01RATTALORO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR333_02PORTOPALO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR333_06CIANCIANA_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR442": {
+        "title": "Flood in Northern Norway",
+        "type": "Flood",
+        "country": "Norway",
+        "start": "2020-06-09T04:54:00",
+        "end": "2020-06-10T22:39:32",
+        "lat": 69.87156013047395,
+        "lon": 23.88836963493624,
+        "subset": "train",
+        "delineations": [
+            "EMSR442_AOI07_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR442_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR442_AOI06_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR442_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR444": {
+        "title": "Flood in Western Oblasts, Ukraine",
+        "type": "Flood",
+        "country": "Ukraine",
+        "start": "2020-06-25T16:34:00",
+        "end": "2020-06-27T15:56:50",
+        "lat": 48.31354142994418,
+        "lon": 24.732434242156053,
+        "subset": "test",
+        "delineations": [
+            "EMSR444_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR444_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR444_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR444_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR445": {
+        "title": "Flood in Romania",
+        "type": "Flood",
+        "country": "Moldova, Romania, Ukraine",
+        "start": "2020-06-26T11:12:00",
+        "end": "2020-06-28T02:28:21",
+        "lat": 46.73020422567629,
+        "lon": 24.90142408390663,
+        "subset": "test",
+        "delineations": [
+            "EMSR445_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR445_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR184": {
+        "title": "Floods in South Eastern Australia",
+        "type": "Flood",
+        "country": "Australia",
+        "start": "2016-09-26T09:43:00",
+        "end": "2016-10-03T12:01:49",
+        "lat": -33.38239141001008,
+        "lon": 146.82073643722623,
+        "subset": "train",
+        "delineations": [
+            "EMSR184_03EUABALONG_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR184_08FORBES_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR184_06CONDOBOLIN_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR184_05EUBALONGDETAIL_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR184_02JEMALONGCONDOBOLIN_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR184_01GOOLOOGONGJEMALONG_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR184_04HILLSTONFMP_DELINEATION_OVERVIEW_v2_vector.zip"
+        ]
+    },
+    "EMSR514": {
+        "title": "Flood in Guyana",
+        "type": "Flood",
+        "country": "Guyana",
+        "start": "2021-06-14T02:34:00",
+        "end": "2021-06-15T20:38:09",
+        "lat": 7.313627075331817,
+        "lon": -58.61868951597588,
+        "subset": "test",
+        "delineations": [
+            "EMSR514_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR514_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR514_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR260": {
+        "title": "Flood in Northern Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2017-12-12T14:57:00",
+        "end": "2018-01-25T16:36:56",
+        "lat": 44.69369706904235,
+        "lon": 10.715932632305941,
+        "subset": "train",
+        "delineations": [
+            "EMSR260_03SORBOLO_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR260_02VIADANA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR260_01CICOGNARA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR260_06SANPOLODENZA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR260_05MONTECCHIOEMILIA_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR260_04SANTILARIODENZA_01DELINEATION_MAP_v3_vector.zip",
+            "EMSR260_09RUBIERA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR260_10MODENA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR260_08SOLIERA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR260_07CAMPOGALLIANO_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR330": {
+        "title": "Flood in Sicily, Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2018-10-25T15:00:00",
+        "end": "2018-10-26T07:54:36",
+        "lat": 37.427414514013876,
+        "lon": 14.812677755500033,
+        "subset": "test",
+        "delineations": [
+            "EMSR330_03LENTINI_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR330_04GRAMMICHELE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR330_02PALAGONIA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR330_01PIAZZAARMERINA_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR166": {
+        "title": "Floods in Bavaria, Germany",
+        "type": "Flood",
+        "country": "Germany",
+        "start": "2016-06-02T15:06:00",
+        "end": "2016-06-06T17:58:04",
+        "lat": 48.35357123603357,
+        "lon": 13.1895089300835,
+        "subset": "test",
+        "delineations": [
+            "EMSR166_04PFARRKIRCHEN_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR166_01TRIFTERN_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR166_03SIMBACHAMINN_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR166_05TANN_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR166_02JULBACH_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR326": {
+        "title": "Flash Flood in Malaga, Spain",
+        "type": "Flood",
+        "country": "Spain",
+        "start": "2018-10-21T14:34:00",
+        "end": "2018-10-22T23:05:11",
+        "lat": 36.92132922909915,
+        "lon": -4.671141288460488,
+        "subset": "train",
+        "delineations": [
+            "EMSR326_04MALAGA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR326_03RONDA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR326_02ANTEQUERA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR326_01MORONDELAFRONTERA_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR271": {
+        "title": "Floods in Central Greece",
+        "type": "Flood",
+        "country": "Greece",
+        "start": "2018-02-26T14:05:00",
+        "end": "2018-03-02T17:54:51",
+        "lat": 39.55704026346635,
+        "lon": 22.33747618265856,
+        "subset": "train",
+        "delineations": [
+            "EMSR271_05THESSALYOVERVIEW_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR271_03SOFADES_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR271_01VALTINO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR271_02FARKADONA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR271_04STEFANOVIKIO_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR277": {
+        "title": "Flood in Thrace, Greece",
+        "type": "Flood",
+        "country": "Greece",
+        "start": "2018-03-29T11:27:00",
+        "end": "2018-05-03T17:04:57",
+        "lat": 41.26822326920201,
+        "lon": 26.328446452134713,
+        "subset": "train",
+        "delineations": [
+            "EMSR277_01ORESTIADA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR277_02DIDIMOTICHO_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR277_03FERES_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR319": {
+        "title": "Flood in northern Tunisia",
+        "type": "Flood",
+        "country": "Tunisia",
+        "start": "2018-09-29T17:42:00",
+        "end": "2018-10-17T14:22:46",
+        "lat": 36.64618051061197,
+        "lon": 10.76123727509391,
+        "subset": "train",
+        "delineations": [
+            "EMSR319_05SOMAA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR319_02MANZILBUZALAFAH_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR319_01TAKLISAH_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR319_03KORBA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR319_04BOUARGOUB_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR517": {
+        "title": "Flood in Western Germany",
+        "type": "Flood",
+        "country": "Germany",
+        "start": "2021-07-13T17:11:00",
+        "end": "2021-07-16T03:11:56",
+        "lat": 50.70409776887506,
+        "lon": 6.91386306136113,
+        "subset": "train",
+        "delineations": [
+            "EMSR517_AOI06_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR517_AOI05_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR517_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR517_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR517_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR388": {
+        "title": "Flood in the Southeast of Spain",
+        "type": "Flood",
+        "country": "Spain",
+        "start": "2019-09-12T13:37:00",
+        "end": "2019-10-01T14:07:26",
+        "lat": 38.34815878477404,
+        "lon": -0.8715060024234127,
+        "subset": "test",
+        "delineations": [
+            "EMSR388_AOI09_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR388_AOI02_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR388_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR332": {
+        "title": "Flood in Veneto, Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2018-11-01T21:08:00",
+        "end": "2018-11-04T01:59:51",
+        "lat": 45.58281256960356,
+        "lon": 11.854017529969502,
+        "subset": "train",
+        "delineations": [
+            "EMSR332_09VENEZIA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR332_05TRENTO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR332_08PORDENONE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR332_01VERONA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR332_07CORTINEDAMPEZZO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR332_04BASSANODELGRAPPA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR332_02PADOVA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR332_06FELTRE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR332_03ROVERETO_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR424": {
+        "title": "Flood and Landslide in Madagascar",
+        "type": "Flood",
+        "country": "Madagascar",
+        "start": "2020-01-30T12:35:00",
+        "end": "2020-02-12T20:35:16",
+        "lat": -16.239032492095543,
+        "lon": 47.20115682566426,
+        "subset": "train",
+        "delineations": [
+            "EMSR424_AOI03_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR424_AOI05_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR424_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR424_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR424_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR107": {
+        "title": "Flood in Slovenia",
+        "type": "Flood",
+        "country": "Slovenia",
+        "start": "2014-11-06T17:57:00",
+        "end": "2015-01-29T12:47:04",
+        "lat": 45.82427031690563,
+        "lon": 14.484407562009336,
+        "subset": "train",
+        "delineations": [
+            "EMSR107_01PTUJ_DELINEATION_DETAIL01_v2_vector.zip",
+            "EMSR107_02LJUBLJANA_DELINEATION_DETAIL03_v1_vector.zip",
+            "EMSR107_03ILIRSKABISTRICA_DELINEATION_DETAIL01_v1_vector.zip",
+            "EMSR107_03ILIRSKABISTRICA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR107_01PTUJ_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR107_02LJUBLJANA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR107_02LJUBLJANA_DELINEATION_DETAIL01_v1_vector.zip",
+            "EMSR107_02LJUBLJANA_DELINEATION_DETAIL02_v1_vector.zip"
+        ]
+    },
+    "EMSR507": {
+        "title": "Flood in Timor-Leste",
+        "type": "Flood",
+        "country": "Timor-Leste",
+        "start": "2021-04-04T15:59:00",
+        "end": "2021-04-16T15:18:07",
+        "lat": -8.559734843966794,
+        "lon": 125.94312356840724,
+        "subset": "train",
+        "delineations": [
+            "EMSR507_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR507_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR507_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR507_AOI05_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR275": {
+        "title": "Floods in Central Croatia",
+        "type": "Flood",
+        "country": "Croatia",
+        "start": "2018-03-23T14:30:00",
+        "end": "2018-03-24T02:39:40",
+        "lat": 45.41132066353435,
+        "lon": 16.652484615829973,
+        "subset": "train",
+        "delineations": [
+            "EMSR275_03NOVSKA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR275_02KUTINA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR275_01LIJEVIDUBROVCAK_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR321": {
+        "title": "Flood in Honduras and Nicaragua",
+        "type": "Flood",
+        "country": "Honduras, Nicaragua",
+        "start": "2018-10-09T15:58:00",
+        "end": "2018-10-10T21:32:55",
+        "lat": 13.211600342701331,
+        "lon": -87.20905576619984,
+        "subset": "test",
+        "delineations": [
+            "EMSR321_04MOJARAS_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR321_01SANLORENZO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR321_03SOMOTILLO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR321_02CHOLUTECA_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR520": {
+        "title": "Flood in Netherlands",
+        "type": "Flood",
+        "country": "Netherlands",
+        "start": "2021-07-15T23:57:00",
+        "end": "2021-07-17T00:51:07",
+        "lat": 51.289855624003046,
+        "lon": 6.063678803868722,
+        "subset": "test",
+        "delineations": [
+            "EMSR520_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR467": {
+        "title": "Flood in Alpes-Maritimes, France",
+        "type": "Flood",
+        "country": "France",
+        "start": "2020-10-03T12:43:00",
+        "end": "2020-10-05T21:13:47",
+        "lat": 43.84158500819592,
+        "lon": 7.266712675583442,
+        "subset": "train",
+        "delineations": [
+            "EMSR467_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR467_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR467_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR203": {
+        "title": "Floods in Central US",
+        "type": "Flood",
+        "country": "United States",
+        "start": "2017-04-29T09:07:00",
+        "end": "2017-05-03T23:36:13",
+        "lat": 36.623105427174785,
+        "lon": -94.63501653410026,
+        "subset": "test",
+        "delineations": [
+            "EMSR203_07POPLARBLUFF_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR203_06CARBONDALE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR203_03SPRINGFIELD_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR203_02JOPLIN_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR203_04FAYETTEVILLE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR203_05STLOUIS_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR203_01TULSA_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR284": {
+        "title": "Floods in Finland",
+        "type": "Flood",
+        "country": "Finland, Sweden",
+        "start": "2018-05-15T13:05:00",
+        "end": "2018-06-15T07:19:02",
+        "lat": 66.1486510555772,
+        "lon": 23.90143371113319,
+        "subset": "train",
+        "delineations": [
+            "EMSR284_05TORNIOCENTRAL_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR284_02YLITORNIOSOUTHERN_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR284_01YLITORNIONORTHERN_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR284_03KARUNKI_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR284_04TORNIONORTHERN_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR162": {
+        "title": "Floods in Rudaki District, Tajikistan",
+        "type": "Flood",
+        "country": "Tajikistan",
+        "start": "2016-05-16T11:00:00",
+        "end": "2016-05-17T18:04:31",
+        "lat": 38.50881244388876,
+        "lon": 68.81866466724139,
+        "subset": "test",
+        "delineations": [
+            "EMSR162_02DUSHANBESOUTHEAST_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR162_03BASHKYNGASHWEST_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR162_01DUSHANBESOUTH_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR162_04BASHKYNGASHEAST_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR441": {
+        "title": "Flood in Lapland, Finland",
+        "type": "Flood",
+        "country": "Finland",
+        "start": "2020-06-01T17:39:00",
+        "end": "2020-06-08T10:46:59",
+        "lat": 67.47564479534432,
+        "lon": 25.325413778208887,
+        "subset": "test",
+        "delineations": [
+            "EMSR441_AOI09_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR441_AOI08_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR441_AOI06_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR441_AOI07_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR441_AOI05_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR441_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR441_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR117": {
+        "title": "Flood in Greece",
+        "type": "Flood",
+        "country": "Greece",
+        "start": "2015-02-02T11:21:00",
+        "end": "2015-02-03T20:15:05",
+        "lat": 39.323301399380824,
+        "lon": 20.691655457435196,
+        "subset": "train",
+        "delineations": [
+            "EMSR117_01EPIRUS_DELINEATION_DETAIL02_v1_vector.zip",
+            "EMSR117_01EPIRUS_DELINEATION_DETAIL04_v1_vector.zip",
+            "EMSR117_01EPIRUS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR117_01EPIRUS_DELINEATION_DETAIL03_v1_vector.zip",
+            "EMSR117_01EPIRUS_DELINEATION_DETAIL01_v1_vector.zip"
+        ]
+    },
+    "EMSR419": {
+        "title": "Flood in South East Iran",
+        "type": "Flood",
+        "country": "Iran",
+        "start": "2020-01-13T17:15:00",
+        "end": "2020-01-16T12:49:25",
+        "lat": 25.805265647137503,
+        "lon": 59.91026833679341,
+        "subset": "train",
+        "delineations": [
+            "EMSR419_AOI06_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR419_AOI05_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR419_AOI04_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR419_AOI03_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR419_AOI02_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR419_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip"
+        ]
+    },
+    "EMSR273": {
+        "title": "Flood in North Western Albania",
+        "type": "Flood",
+        "country": "Albania",
+        "start": "2018-03-13T11:45:00",
+        "end": "2018-03-29T17:11:08",
+        "lat": 41.9356263450855,
+        "lon": 19.415160400521213,
+        "subset": "train",
+        "delineations": [
+            "EMSR273_01GRILE_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR273_04GOMSIQE_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR273_02DAJC_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR273_05BARBULLUSH_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR273_03SCUTARI_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR280": {
+        "title": "Floods in Dalarna, Sweden",
+        "type": "Flood",
+        "country": "Sweden",
+        "start": "2018-04-21T15:15:00",
+        "end": "2018-07-02T18:11:15",
+        "lat": 60.7339518790553,
+        "lon": 14.703043816317955,
+        "subset": "train",
+        "delineations": [
+            "EMSR280_04ENVIKEN_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR280_05MORA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR280_03FALUN_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR280_01MALUNG_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR280_02VANSBRO_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR279": {
+        "title": "Flood in the Ebro river basin, Spain",
+        "type": "Flood",
+        "country": "Spain",
+        "start": "2018-04-13T09:31:00",
+        "end": "2018-05-08T15:28:34",
+        "lat": 41.78049441394962,
+        "lon": -0.9776048836201082,
+        "subset": "val",
+        "delineations": [
+            "EMSR279_06CASPE_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR279_05ZARAGOZA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR279_02PAMPLONA_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR279_01VITORIA-GASTEIZ_01DELINEATION_MAP_v2_vector.zip",
+            "EMSR279_09SEROS_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR279_10GANDESA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR279_11TORTOSA_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR279_03ALFARO_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR279_04TUDELA_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR293": {
+        "title": "Flood in Romania",
+        "type": "Flood",
+        "country": "Romania",
+        "start": "2018-06-30T22:52:00",
+        "end": "2018-07-02T21:51:04",
+        "lat": 46.43130803741975,
+        "lon": 26.673233217712017,
+        "subset": "train",
+        "delineations": [
+            "EMSR293_02TROTUS_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR293_03OZUN_01DELINEATION_MAP_v1_vector.zip",
+            "EMSR293_01BOTOSANI_01DELINEATION_MAP_v1_vector.zip"
+        ]
+    },
+    "EMSR192": {
+        "title": "Floods in Northern Italy",
+        "type": "Flood",
+        "country": "Italy",
+        "start": "2016-11-24T20:04:00",
+        "end": "2016-11-29T00:28:10",
+        "lat": 44.99733770358342,
+        "lon": 8.332738023872688,
+        "subset": "train",
+        "delineations": [
+            "EMSR192_01FOSSANO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_04ASTI_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_14ALESSANDRIA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_15TORTONA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_13SALE_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_12SANSALVATOREMONFERRATO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_05CASELLETTE_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_07TORINOSOUTH_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_06TORINO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_11LOMELLO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_10CASALEMONFERRATO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_03ALBA_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_09TRINO_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR192_02BRA_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR192_08CHIVASSO_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR165": {
+        "title": "Flood in Loiret",
+        "type": "Flood",
+        "country": "France",
+        "start": "2016-06-01T18:45:00",
+        "end": "2016-06-09T23:52:23",
+        "lat": 48.55470427073376,
+        "lon": 2.4722225162779985,
+        "subset": "train",
+        "delineations": [
+            "EMSR165_07YERRES_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR165_06PARIS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR165_05MANTES-LA-JOLIE_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR165_04POISSY_DELINEATION_OVERVIEW_v2_vector.zip",
+            "EMSR165_08DAMMARIE-LES-LYS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR165_01NEMOURS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR165_03MONTARGIS_DELINEATION_OVERVIEW_v1_vector.zip",
+            "EMSR165_02FONTAINEBLEAU_DELINEATION_OVERVIEW_v1_vector.zip"
+        ]
+    },
+    "EMSR407": {
+        "title": "Severe Flooding in Northern England",
+        "type": "Flood",
+        "country": "United Kingdom",
+        "start": "2019-11-12T21:15:00",
+        "end": "2019-11-21T17:15:32",
+        "lat": 53.31228868815126,
+        "lon": -0.6700977703403681,
+        "subset": "train",
+        "delineations": [
+            "EMSR407_AOI01_DEL_PRODUCT_r1_VECTORS_v3_vector.zip",
+            "EMSR407_AOI02_DEL_PRODUCT_r1_VECTORS_v2_vector.zip"
+        ]
+    },
+    "EMSR429": {
+        "title": "Flood in Clare, Ireland",
+        "type": "Flood",
+        "country": "Ireland",
+        "start": "2020-02-24T18:56:00",
+        "end": "2020-03-04T18:54:09",
+        "lat": 53.479862214890474,
+        "lon": -8.431946223710693,
+        "subset": "train",
+        "delineations": [
+            "EMSR429_AOI09_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR429_AOI08_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR429_AOI07_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR429_AOI05_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR429_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR429_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR429_AOI06_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR429_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR429_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR427": {
+        "title": "Flood in Vastra Gotaland, Sweden",
+        "type": "Flood",
+        "country": "Sweden",
+        "start": "2020-02-18T14:34:00",
+        "end": "2020-03-03T15:17:56",
+        "lat": 57.32485352090212,
+        "lon": 13.874496356368317,
+        "subset": "train",
+        "delineations": [
+            "EMSR427_AOI05_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR427_AOI09_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR427_AOI10_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR427_AOI08_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR427_AOI07_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR427_AOI06_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR427_AOI04_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR427_AOI02_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR427_AOI03_DEL_PRODUCT_r1_VECTORS_v1_vector.zip"
+        ]
+    },
+    "EMSR511": {
+        "title": "Flood in Lapland, Finland",
+        "type": "Flood",
+        "country": "Finland",
+        "start": "2021-05-21T07:21:00",
+        "end": "2021-05-28T14:53:29",
+        "lat": 67.5956972269095,
+        "lon": 26.04363445087394,
+        "subset": "test",
+        "delineations": [
+            "EMSR511_AOI07_DEL_PRODUCT_r1_VECTORS_v1_vector.zip",
+            "EMSR511_AOI01_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR511_AOI02_DEL_PRODUCT_r1_VECTORS_v2_vector.zip",
+            "EMSR511_AOI03_DEL_PRODUCT_r1_VECTORS_v2_vector.zip"
+        ]
+    }
+}

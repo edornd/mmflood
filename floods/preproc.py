@@ -10,6 +10,7 @@ import numpy as np
 import rasterio
 from rasterio.io import MemoryFile
 from rasterio.windows import Window
+# from torch._C import float32
 from tqdm import tqdm
 
 from floods.config.preproc import ImageType, PreparationConfig, StatsConfig
@@ -128,8 +129,23 @@ def _gather_files(sar_glob: Path,
 
 
 def _decibel(data: np.ndarray):
-    return np.maximum(0, np.log10(data + F16_EPS) * 0.21714724095 + 1)
+    """
+        SentinelHub had the following preprocess:
+        return np.maximum(0, np.log10(data + F16_EPS) * 0.21714724095 + 1)
+        
+        Changed to custom to the following (for better distribution of pixels + cap):    
+    """
+    # np.clip( , a_min = -50, a_max=0)
+    return 10 * np.log(data + F16_EPS)
 
+
+def _minmax_dem(data: np.ndarray):
+    """
+        MinMax the DEM between -100 and 6000 meters 
+    """
+    data[data < -100] = -100
+    data[data > 6000] = 6000
+    return data
 
 def _process_tiff(image_id: str,
                   source_path: Path,
@@ -152,6 +168,8 @@ def _process_tiff(image_id: str,
         Tuple[int, int]: number of tiles for each axis
     """
     suffix, _ = image_type.value
+    # create destination subfolders paths (dem/sar/mask)
+    check_or_make_dir(Path(dst_path) / Path(suffix))
     # read image using rasterio
     with rasterio.open(str(source_path), mode="r", driver="GTiff") as dataset:
         # first, check dimensions:
@@ -170,18 +188,20 @@ def _process_tiff(image_id: str,
                 for (tile_row, tile_col), coords in generator:
                     x1, y1, x2, y2 = coords
                     window = Window.from_slices(rows=(x1, x2), cols=(y1, y2))
-                    tile_path = dst_path / f"{image_id}_{tile_row}_{tile_col}_{suffix}.tif"
+                    tile_path = dst_path / suffix / f"{image_id}_{tile_row}_{tile_col}.tif"
                     write_window(window, target, path=tile_path)
         # return the total amount of tile rows and cols and a mask, if present
     return tile_row + 1, tile_col + 1
 
 
+
+
 def preprocess_data(config: PreparationConfig):
-    # A couple prints just to be cool
+    # A couple prints just to be 😎
     LOG.info("Preparing dataset...")
     print_config(LOG, config)
 
-    # initial checks and common folder inits
+    # initial checks and common folder inits (if not exists, create)
     dst_dir = check_or_make_dir(config.data_processed)
     code2subset = dict()
     # load the summary file containing all the EMSR information, including splits
@@ -222,7 +242,13 @@ def preprocess_data(config: PreparationConfig):
             for sar_path, dem_path, msk_path in tqdm(list(zip(sar_files, dem_files, msk_files))):
                 image_id = Path(sar_path).stem
                 sar_process = _decibel if config.decibel else None
-                dem_tiles = _process_tiff(image_id, dem_path, subset_dir, image_type=ImageType.DEM, tiling_fn=tiler)
+                dem_process = _minmax_dem if config.minmax_dem else None
+                dem_tiles = _process_tiff(image_id, 
+                                          dem_path, 
+                                          subset_dir, 
+                                          image_type=ImageType.DEM, 
+                                          tiling_fn=tiler,
+                                          process_fn=dem_process)
                 sar_tiles = _process_tiff(image_id,
                                           sar_path,
                                           subset_dir,
@@ -241,9 +267,9 @@ def preprocess_data(config: PreparationConfig):
         LOG.info("Tiling complete")
         # From here, assume tiles are done and present in dst_dir
         # continue with the preprocessing
-        tile_paths = _gather_files(sar_glob=subset_dir / "*_sar.tif",
-                                   dem_glob=subset_dir / "*_dem.tif",
-                                   mask_glob=subset_dir / "*_mask.tif",
+        tile_paths = _gather_files(sar_glob=subset_dir / "sar/*.tif",
+                                   dem_glob=subset_dir / "dem/*.tif",
+                                   mask_glob=subset_dir / "mask/*.tif",
                                    check_stems=False)
 
         valid, removed = 0, 0
@@ -278,9 +304,9 @@ def compute_statistics(config: StatsConfig):
     LOG.info(f"Computing dataset statistics on {config.subset} set...")
     print_config(LOG, config)
 
-    sar_paths = sorted(list(glob(str(config.data_root / config.subset / "*_sar.tif"))))
-    dem_paths = sorted(list(glob(str(config.data_root / config.subset / "*_dem.tif"))))
-    msk_paths = sorted(list(glob(str(config.data_root / config.subset / "*_mask.tif"))))
+    sar_paths = sorted(list(glob(str(config.data_root / config.subset / "sar/*.tif"))))
+    dem_paths = sorted(list(glob(str(config.data_root / config.subset / "dem/*.tif"))))
+    msk_paths = sorted(list(glob(str(config.data_root / config.subset / "mask/*.tif"))))
 
     assert len(sar_paths) > 0 and len(sar_paths) == len(dem_paths) == len(msk_paths), "Length mismatch"
 
@@ -292,12 +318,12 @@ def compute_statistics(config: StatsConfig):
     # iterate on the large tiles
     LOG.info("Computing  min, max and mean...")
     for sar_path, dem_path, mask_path in tqdm(list(zip(sar_paths, dem_paths, msk_paths))):
-        image_id = Path(sar_path).stem.replace("_sar", "")
+        image_id = Path(sar_path).stem#.replace("sar", "")
         assert _extract_emsr(sar_path) == _extract_emsr(dem_path) == _extract_emsr(mask_path), "Image ID not matching"
 
         # read images
         sar = _decibel(imread(sar_path, channels_first=False))
-        dem = imread(dem_path, channels_first=False)
+        dem = _minmax_dem(imread(dem_path, channels_first=False))
         mask = imread(mask_path, channels_first=False)
         mask = mask.reshape(_dims(mask))
         assert _dims(sar) == _dims(dem) == _dims(mask), f"Shape mismatch for {image_id}"
@@ -325,7 +351,7 @@ def compute_statistics(config: StatsConfig):
     for sar_path, dem_path in tqdm(list(zip(sar_paths, dem_paths))):
         # read images
         sar = _decibel(imread(sar_path, channels_first=False))
-        dem = imread(dem_path, channels_first=False)
+        dem = _minmax_dem(imread(dem_path, channels_first=False))
         mask = imread(mask_path, channels_first=False)
         mask = mask.reshape(_dims(mask))
         assert _dims(sar) == _dims(dem) == _dims(mask), f"Shape mismatch for {image_id}"

@@ -6,7 +6,7 @@ PORT=1235
 COMMENT="whatever is relevant"
 
 CUDA_VISIBLE_DEVICES=$CUDA accelerate launch --config accelerate/multi-gpu.json --main_process_port $PORT run.py train \
---data-root /mnt/userdata/arnaudo_data/flood-delineation \
+--data-root /mnt/userdata/montello_data/shub/imgs_zoom11/ready-to-train \
 --model.encoder=tresnet_m \
 --trainer.batch-size=8 \
 --pippo \

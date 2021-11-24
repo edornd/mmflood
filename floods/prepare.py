@@ -15,6 +15,7 @@ from floods.models.base import Segmenter
 from floods.models.modules import SegmentationHead
 from floods.transforms import Denormalize
 from floods.utils.common import get_logger
+from floods.utils.functional import mask_body_ratio_from_threshold
 
 LOG = get_logger(__name__)
 
@@ -70,11 +71,24 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     # also print them, just in case
     LOG.info("Train transforms: %s", str(train_transform))
     LOG.info("Eval. transforms: %s", str(eval_transform))
+
+    complete_dataset = FloodDataset(path=data_root,
+                                    subset="train",
+                                    include_dem=config.include_dem)
+
+    # imgs_mask = mask_body_ratio_from_threshold(complete_dataset.label_files, 0)
+
+    img, mask = complete_dataset.__getitem__(0)
+    LOG.info("Mask shape: %s", str(mask.shape))
+
+
     # create train and validation sets
     train_dataset = FloodDataset(path=data_root,
                                  subset="train",
                                  include_dem=config.include_dem,
-                                 transform=train_transform)
+                                 transform=train_transform)#.add_mask(imgs_mask)
+    
+
     valid_dataset = FloodDataset(path=data_root,
                                  subset="val",
                                  include_dem=config.include_dem,

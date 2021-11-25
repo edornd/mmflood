@@ -1,4 +1,5 @@
 import logging
+import math
 from pathlib import Path
 from typing import Union
 
@@ -17,8 +18,6 @@ VH25 = -44.751529693603516
 VH75 = -30.273120880126953
 DEM25 = 19.0
 DEM75 = 187.0
-
-import math
 
 
 # Running mean and variance using Welford's algorithm

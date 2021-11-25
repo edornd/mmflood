@@ -33,23 +33,23 @@ class FloodDataset(DatasetBase):
         self.transform = transform
         # gather files to build the list of available pairs
         path = path / subset
-        self.image_files = sorted(glob(str(path / "sar/*.tif")))
-        self.label_files = sorted(glob(str(path / "mask/*.tif")))
+        self.image_files = sorted(glob(str(path / "sar" / "*.tif")))
+        self.label_files = sorted(glob(str(path / "mask" / "*.tif")))
         assert len(self.image_files) > 0, f"No images found, is the given path correct? ({str(path)})"
         assert len(self.image_files) == len(self.label_files), \
             f"Length mismatch between tiles and masks: {len(self.image_files)} != {len(self.label_files)}"
         # check matching tiles, just in case
         for image, mask in zip(self.image_files, self.label_files):
-            image_tile = Path(image).stem#.replace("_sar", "")
-            label_tile = Path(mask).stem#.replace("_mask", "")
+            image_tile = Path(image).stem
+            label_tile = Path(mask).stem
             assert image_tile == label_tile, f"image: {image_tile} != mask: {label_tile}"
         # add the optional digital elevation map (DEM)
         if self._include_dem:
-            self.dem_files = sorted(glob(str(path / "dem/*.tif")))
+            self.dem_files = sorted(glob(str(path / "dem " / "*.tif")))
             assert len(self.image_files) == len(self.dem_files), "Length mismatch between tiles and DEMs"
             for image, dem in zip(self.image_files, self.dem_files):
-                image_tile = Path(image).stem#.replace("_sar", "")
-                dem_tile = Path(dem).stem#.replace("_dem", "")
+                image_tile = Path(image).stem
+                dem_tile = Path(dem).stem
                 assert image_tile == dem_tile, f"image: {image_tile} != dem: {dem_tile}"
 
     @classmethod

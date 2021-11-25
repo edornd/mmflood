@@ -10,7 +10,6 @@ import numpy as np
 import rasterio
 from rasterio.io import MemoryFile
 from rasterio.windows import Window
-# from torch._C import float32
 from tqdm import tqdm
 
 from floods.config.preproc import ImageType, PreparationConfig, StatsConfig
@@ -132,8 +131,7 @@ def _decibel(data: np.ndarray):
     """
         SentinelHub had the following preprocess:
         return np.maximum(0, np.log10(data + F16_EPS) * 0.21714724095 + 1)
-        
-        Changed to custom to the following (for better distribution of pixels + cap):    
+        Changed to custom to the following (for better distribution of pixels + cap)
     """
     # np.clip( , a_min = -50, a_max=0)
     return 10 * np.log(data + F16_EPS)
@@ -141,11 +139,12 @@ def _decibel(data: np.ndarray):
 
 def _minmax_dem(data: np.ndarray):
     """
-        MinMax the DEM between -100 and 6000 meters 
+        MinMax the DEM between -100 and 6000 meters
     """
     data[data < -100] = -100
     data[data > 6000] = 6000
     return data
+
 
 def _process_tiff(image_id: str,
                   source_path: Path,
@@ -192,8 +191,6 @@ def _process_tiff(image_id: str,
                     write_window(window, target, path=tile_path)
         # return the total amount of tile rows and cols and a mask, if present
     return tile_row + 1, tile_col + 1
-
-
 
 
 def preprocess_data(config: PreparationConfig):
@@ -243,10 +240,10 @@ def preprocess_data(config: PreparationConfig):
                 image_id = Path(sar_path).stem
                 sar_process = _decibel if config.decibel else None
                 dem_process = _minmax_dem if config.minmax_dem else None
-                dem_tiles = _process_tiff(image_id, 
-                                          dem_path, 
-                                          subset_dir, 
-                                          image_type=ImageType.DEM, 
+                dem_tiles = _process_tiff(image_id,
+                                          dem_path,
+                                          subset_dir,
+                                          image_type=ImageType.DEM,
                                           tiling_fn=tiler,
                                           process_fn=dem_process)
                 sar_tiles = _process_tiff(image_id,
@@ -304,9 +301,9 @@ def compute_statistics(config: StatsConfig):
     LOG.info(f"Computing dataset statistics on {config.subset} set...")
     print_config(LOG, config)
 
-    sar_paths = sorted(list(glob(str(config.data_root / config.subset / "sar/*.tif"))))
-    dem_paths = sorted(list(glob(str(config.data_root / config.subset / "dem/*.tif"))))
-    msk_paths = sorted(list(glob(str(config.data_root / config.subset / "mask/*.tif"))))
+    sar_paths = sorted(list(glob(str(config.data_root / config.subset / "sar" / "*.tif"))))
+    dem_paths = sorted(list(glob(str(config.data_root / config.subset / "dem" / "*.tif"))))
+    msk_paths = sorted(list(glob(str(config.data_root / config.subset / "mask" / "*.tif"))))
 
     assert len(sar_paths) > 0 and len(sar_paths) == len(dem_paths) == len(msk_paths), "Length mismatch"
 
@@ -318,7 +315,7 @@ def compute_statistics(config: StatsConfig):
     # iterate on the large tiles
     LOG.info("Computing  min, max and mean...")
     for sar_path, dem_path, mask_path in tqdm(list(zip(sar_paths, dem_paths, msk_paths))):
-        image_id = Path(sar_path).stem#.replace("sar", "")
+        image_id = Path(sar_path).stem  # .replace("sar", "")
         assert _extract_emsr(sar_path) == _extract_emsr(dem_path) == _extract_emsr(mask_path), "Image ID not matching"
 
         # read images

@@ -2,6 +2,8 @@ from typing import Generator, Union
 
 import numpy as np
 
+from floods.utils.gis import imread
+
 
 def tile_overlapped(image: np.ndarray,
                     tile_size: Union[tuple, int],

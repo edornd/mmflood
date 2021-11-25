@@ -92,3 +92,45 @@ def tile_fixed_overlap(image: np.ndarray,
             x = tile_x * strides[0]
             y = tile_y * strides[1]
             yield (tile_x, tile_y), (x, x + tile_dims[0], y, y + tile_dims[1])
+
+
+def tile_body_water_ratio(image: np.ndarray) -> float:
+    """
+    Computes the body water ratio from the given image.
+    """
+    assert len(image.shape) == 3, "Expected 3D image"
+    assert image.shape[0] == 1, "Expected single channel image"
+
+    # flat the image into 1D array, then remove nan values
+    nan_filtered = image.flat
+    nan_filtered = nan_filtered[~np.isnan(nan_filtered)]
+
+    # get counter of 1s
+    _, u_cnt = np.unique(nan_filtered, return_counts=True)
+
+    # return the ratio
+    return u_cnt[1] / len(nan_filtered)
+
+
+def mask_body_ratio_from_threshold(gt_list: list, ratio_threshold: float) -> np.ndarray:
+    """
+    Returns a binary mask with the images having a body water ratio above the threshold.
+    """
+
+    # for each mask in the path read the image array and get the tile body water ratio
+    assert len(gt_list) > 0, "No masks found in the path"
+
+    # create the list for filtering the elements, set to zero by default
+    mask = np.zeros(len(gt_list))
+
+    for i, gt in enumerate(gt_list):
+        # 1. read the image
+        # 2. get the body water ratio
+        # 3. if the ratio is above the threshold, set the mask to 1, meaning use the image
+        image = imread(gt)
+        ratio = tile_body_water_ratio(image)
+        if ratio >= ratio_threshold:
+            mask[i] = 1
+
+    # return mask
+    return mask

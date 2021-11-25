@@ -131,10 +131,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# train.sh script
+# custom folders/files
 train.sh
-
-# accelerate configs (which are local to the machine)
 accelerate
 accelerate/*
 *.sh

@@ -5,7 +5,7 @@ from floods import preproc, testing, training
 from floods.config import PreparationConfig, StatsConfig, TrainConfig
 from floods.config.testing import TestConfig
 from floods.utils.common import prepare_logging
-
+from tests.test_datasets import test_dataset
 cli = Parser()
 
 
@@ -16,7 +16,7 @@ def preprocess(config: PreparationConfig):
 
 @cli.command()
 def stats(config: StatsConfig):
-    return preproc.compute_statistics(config=config)
+    return test_dataset(config=config)
 
 
 @cli.command()

@@ -137,3 +137,4 @@ train.sh
 # accelerate configs (which are local to the machine)
 accelerate
 accelerate/*
+*.sh

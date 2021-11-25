@@ -7,7 +7,6 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from floods.datasets.flood import FloodDataset
-from floods.prepare import eval_transforms
 
 LOG = logging.getLogger(__name__)
 
@@ -29,7 +28,6 @@ def test_dataset_iter(dataset_path: Path):
     loader = DataLoader(dataset, batch_size=1, num_workers=4, shuffle=False)
 
     mean = torch.zeros(3)
-    std = torch.zeros(3)
     min_val = torch.ones(3) * np.finfo(np.float16).max
     max_val = torch.ones(3) * np.finfo(np.float16).min
 
@@ -44,13 +42,3 @@ def test_dataset_iter(dataset_path: Path):
     LOG.info(f"mean: {mean}")
     LOG.info(f"min: {min_val}")
     LOG.info(f"max: {max_val}")
-    return
-
-    for image, _ in tqdm(loader):
-        valid = label.squeeze(0) != 255
-        data = image.squeeze(0)[:, valid]
-        std += ((data - mean)**2).sum(axis=-1) / torch.count_nonzero(valid)
-
-    std /= len(loader)
-    std = std.sqrt()
-    LOG.info(f"std: {std}")

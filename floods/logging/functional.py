@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 from torch import Tensor
 
 from floods.transforms import Denormalize
+from floods.utils.gis import rgb_ratio
 
 
 def plot_confusion_matrix(cm: np.ndarray,
@@ -78,12 +79,13 @@ def save_grid(inputs: Tensor,
         for i in range(inputs.shape[0]):
             save_grid(inputs[i], targets[i], preds[i], filepath=filepath, filename=filename, palette=palette, offset=i)
     else:
-        image = (Denormalize()(inputs) * 255).astype(np.uint8)
+        image = Denormalize()(inputs)
+        image = rgb_ratio(image)
         # targets and predictions still have a channel dim
         if targets.ndim > 2:
             targets = targets.squeeze(0)
             preds = preds.squeeze(0)
-        rgb_true = mask_to_rgb(targets.numpy(), palette=palette)
-        rgb_pred = mask_to_rgb(preds.numpy(), palette=palette)
+        rgb_true = mask_to_rgb(targets.cpu().numpy(), palette=palette)
+        rgb_pred = mask_to_rgb(preds.cpu().numpy(), palette=palette)
         grid = make_grid(image, rgb_true, rgb_pred)
         plt.imsave(filepath / f"{filename}-{offset}.png", grid)

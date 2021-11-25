@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable
 
 import numpy as np
 import torch
-from accelerate import Accelerator
 from torch import nn
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
 
+from accelerate import Accelerator
 from floods.logging import BaseLogger
 from floods.logging.empty import EmptyLogger
 from floods.metrics import Metric
@@ -301,7 +301,8 @@ class Trainer:
                 test_dataloader: DataLoader,
                 metrics: Dict[str, Metric],
                 logger_exclude: Iterable[str] = None,
-                return_preds: bool = False):
+                return_predictions: bool = False,
+                **kwargs: dict):
         logger_exclude = logger_exclude or []
         self.metrics[TrainerStage.test.value] = metrics
         self._reset_metrics(stage=TrainerStage.test)
@@ -314,14 +315,14 @@ class Trainer:
             self.model.eval()
             for i, batch in enumerate(test_tqdm):
                 start = time.time()
-                loss, data = self.test_batch(batch=batch, batch_index=i)
+                loss, data = self.test_batch(batch=batch, batch_index=i, **kwargs)
                 elapsed = (time.time() - start)
                 loss_value = loss.item()
                 test_tqdm.set_postfix({"loss": f"{loss_value:.4f}"})
                 # we do not log 'iter' versions, as for validation
                 losses.append(loss_value)
                 timings.append(elapsed)
-                if return_preds:
+                if return_predictions:
                     results.append(data)
 
             self.logger.log_scalar("test/loss", np.mean(losses))

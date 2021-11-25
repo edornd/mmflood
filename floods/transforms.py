@@ -1,5 +1,7 @@
-from typing import Sequence
+from typing import Any, Dict, Sequence
 
+import numpy as np
+from albumentations import Normalize
 from torch import Tensor
 
 
@@ -28,3 +30,22 @@ class Denormalize:
         tensor = tensor.permute(0, 2, 3, 1)
         tensor = tensor[0] if single_image else tensor
         return tensor.detach().cpu().numpy()
+
+
+class ClipNormalize(Normalize):
+
+    def __init__(self,
+                 mean: tuple,
+                 std: tuple,
+                 clip_min: tuple,
+                 clip_max: tuple,
+                 max_pixel_value: float = 1.0,
+                 always_apply: bool = False,
+                 p: float = 1.0):
+        super().__init__(mean=mean, std=std, max_pixel_value=max_pixel_value, always_apply=always_apply, p=p)
+        self.min = clip_min
+        self.max = clip_max
+
+    def __call__(self, image, **params) -> Dict[str, Any]:
+        image = np.clip(image, self.min, self.max)
+        return super().__call__(image=image, **params)

@@ -24,8 +24,9 @@ def train(config: TrainConfig):
     training.train(config=config)
 
 
+@cli.command()
 def test(config: TestConfig):
-    testing.test(config=config)
+    testing.test(config)
 
 
 if __name__ == '__main__':

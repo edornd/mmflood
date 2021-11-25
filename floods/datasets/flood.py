@@ -3,11 +3,10 @@ from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 
 import numpy as np
-import torch
 from torch import Tensor
 
 from floods.datasets.base import DatasetBase
-from floods.utils.functional import imread
+from floods.utils.gis import imread
 
 
 class FloodDataset(DatasetBase):
@@ -16,8 +15,11 @@ class FloodDataset(DatasetBase):
     _categories = {0: "background", 1: "flood"}
     _palette = {0: (0, 0, 0), 1: (255, 255, 255), 255: (255, 0, 255)}
     _ignore_index = 255
-    _mean = (0.5263605313385773, 0.2356325754443956, 163.95)
-    _std = (0.21251460443641174, 0.1750975830046255, 231.02)
+    # manually modified to allow channel swap between the first two
+    _mean = (0.755, 0.755, 142.412)
+    _std = (0.091, 0.091, 81.101)
+    _min = (0.2, 0.2, -120.0)
+    _max = (1.1, 1.1, 6000.0)
 
     def __init__(self,
                  path: Path,
@@ -74,6 +76,14 @@ class FloodDataset(DatasetBase):
     def std(cls) -> Tuple[float, ...]:
         return cls._std
 
+    @classmethod
+    def clip_min(cls) -> Tuple[float, ...]:
+        return cls._min
+
+    @classmethod
+    def clip_max(cls) -> Tuple[float, ...]:
+        return cls._max
+
     def stage(self) -> str:
         return self._subset
 
@@ -107,9 +117,6 @@ class FloodDataset(DatasetBase):
             pair = self.transform(image=image, mask=label)
             image = pair.get("image")
             label = pair.get("mask")
-        else:
-            image = torch.from_numpy(image.transpose(2, 0, 1))
-            label = torch.from_numpy(label)
         return image, label
 
     def __len__(self) -> int:

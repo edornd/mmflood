@@ -99,6 +99,7 @@ def train(config: TrainConfig):
                                        criterion=EarlyStoppingCriterion.maximum,
                                        patience=config.trainer.patience)) \
            .add_callback(Checkpoint(call_every=1,
+                                    monitor=monitored,
                                     model_folder=model_folder,
                                     save_best=True)) \
            .add_callback(DisplaySamples(inverse_transform=inverse_transform(mean=train_set.mean(), std=train_set.std()),

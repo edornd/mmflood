@@ -2,6 +2,8 @@ from typing import Callable, List
 
 import numpy as np
 import scipy.signal
+import torch
+from torch.nn import functional as func
 
 WINDOW_CACHE = dict()
 
@@ -31,7 +33,7 @@ def _spline_window(window_size: int, power: int = 2) -> np.ndarray:
     return wind
 
 
-def _spline_2d(window_size: int, power: int = 2):
+def _spline_2d(window_size: int, power: int = 2) -> torch.Tensor:
     """Makes a 1D window spline function, then combines it to return a 2D window function.
     The 2D window is useful to smoothly interpolate between patches.
 
@@ -51,41 +53,44 @@ def _spline_2d(window_size: int, power: int = 2):
     else:
         wind = _spline_window(window_size, power)
         wind = np.expand_dims(np.expand_dims(wind, 1), 1)  # SREENI: Changed from 3, 3, to 1, 1
-        wind = wind * wind.transpose(1, 0, 2)
+        wind = torch.from_numpy(wind * wind.transpose(1, 0, 2))
         WINDOW_CACHE[key] = wind
     return wind
 
 
-def pad_image(image: np.ndarray, tile_size: int, subdivisions: int) -> np.ndarray:
+def pad_image(image: torch.Tensor, tile_size: int, subdivisions: int) -> torch.Tensor:
     """Add borders to the given image for a "valid" border pattern according to "window_size" and "subdivisions".
     Image is expected as a numpy array with shape (width, height, channels).
 
     Args:
-        image (np.ndarray): input image, 3D channels-last tensor
+        image (torch.Tensor): input image, 3D channels-last tensor
         tile_size (int): size of a single patch, useful to compute padding
         subdivisions (int): amount of overlap, useful for padding
 
     Returns:
-        np.ndarray: same image, padded specularly by a certain amount in every direction
+        torch.Tensor: same image, padded specularly by a certain amount in every direction
     """
     # compute the pad as (window - window/subdivisions)
     pad = int(round(tile_size * (1 - 1.0 / subdivisions)))
-    # add pad pixels in height and width, nothing channel-wise of course
-    borders = ((pad, pad), (pad, pad), (0, 0))
-    return np.pad(image, pad_width=borders, mode='reflect')
+    # add pad pixels in height and width, nothing channel-wise
+    # since torch.pad works on tensors, it requires a 4D array with shape [batch, channels, width, height]
+    # padding is then defined as amount for each dimension and for each of the x/y axis
+    batch = image.permute(2, 0, 1).unsqueeze(0)
+    batch = func.pad(batch, (pad, pad, pad, pad), mode="reflect")
+    return batch.squeeze(0).permute(1, 2, 0)
 
 
-def unpad_image(padded_image: np.ndarray, tile_size: int, subdivisions: int) -> np.ndarray:
+def unpad_image(padded_image: torch.Tensor, tile_size: int, subdivisions: int) -> torch.Tensor:
     """Reverts changes made by 'pad_image'. The same padding is removed, so tile_size and subdivisions
     must be coherent.
 
     Args:
-        padded_image (np.ndarray): image with padding still applied
+        padded_image (torch.Tensor): image with padding still applied
         tile_size (int): size of a single patch
         subdivisions (int): subdivisions to compute overlap
 
     Returns:
-        np.ndarray: image without padding, 2D channels-last tensor
+        torch.Tensor: image without padding, 2D channels-last tensor
     """
     # compute the same amount as before, window - window/subdivisions
     pad = int(round(tile_size * (1 - 1.0 / subdivisions)))
@@ -94,57 +99,58 @@ def unpad_image(padded_image: np.ndarray, tile_size: int, subdivisions: int) -> 
     return result
 
 
-def rotate_and_mirror(image: np.ndarray) -> List[np.ndarray]:
+def rotate_and_mirror(image: torch.Tensor) -> List[torch.Tensor]:
     """Duplicates an image with shape (h, w, channels) 8 times, in order
     to have all the possible rotations and mirrors of that image that fits the
     possible 90 degrees rotations. https://en.wikipedia.org/wiki/Dihedral_group
 
     Args:
-        image (np.ndarray): input image, already padded.
+        image (torch.Tensor): input image, already padded.
 
     Returns:
-        List[np.ndarray]: list of images, rotated and mirrored.
+        List[torch.Tensor]: list of images, rotated and mirrored.
     """
     variants = []
-    variants.append(np.array(image))
-    variants.append(np.rot90(np.array(image), axes=(0, 1), k=1))
-    variants.append(np.rot90(np.array(image), axes=(0, 1), k=2))
-    variants.append(np.rot90(np.array(image), axes=(0, 1), k=3))
-    image = np.array(image)[:, ::-1]
-    variants.append(np.array(image))
-    variants.append(np.rot90(np.array(image), axes=(0, 1), k=1))
-    variants.append(np.rot90(np.array(image), axes=(0, 1), k=2))
-    variants.append(np.rot90(np.array(image), axes=(0, 1), k=3))
+    variants.append(image)
+    variants.append(torch.rot90(image, k=1, dims=(0, 1)))
+    variants.append(torch.rot90(image, k=2, dims=(0, 1)))
+    variants.append(torch.rot90(image, k=3, dims=(0, 1)))
+    image = torch.flip(image, dims=(0, 1))
+    variants.append(image)
+    variants.append(torch.rot90(image, k=1, dims=(0, 1)))
+    variants.append(torch.rot90(image, k=2, dims=(0, 1)))
+    variants.append(torch.rot90(image, k=3, dims=(0, 1)))
     return variants
 
 
-def undo_rotate_and_mirror(variants: List[np.ndarray]) -> np.ndarray:
+def undo_rotate_and_mirror(variants: List[torch.Tensor]) -> torch.Tensor:
     """Reverts the 8 duplications provided by rotate and mirror.
     This restores the transformed inputs to the original position, then averages them.
 
     Args:
-        variants (List[np.ndarray]): D4 dihedral group of the same image
+        variants (List[torch.Tensor]): D4 dihedral group of the same image
 
     Returns:
-        np.ndarray: averaged result over the given input.
+        torch.Tensor: averaged result over the given input.
     """
     origs = []
-    origs.append(np.array(variants[0]))
-    origs.append(np.rot90(np.array(variants[1]), axes=(0, 1), k=3))
-    origs.append(np.rot90(np.array(variants[2]), axes=(0, 1), k=2))
-    origs.append(np.rot90(np.array(variants[3]), axes=(0, 1), k=1))
-    origs.append(np.array(variants[4])[:, ::-1])
-    origs.append(np.rot90(np.array(variants[5]), axes=(0, 1), k=3)[:, ::-1])
-    origs.append(np.rot90(np.array(variants[6]), axes=(0, 1), k=2)[:, ::-1])
-    origs.append(np.rot90(np.array(variants[7]), axes=(0, 1), k=1)[:, ::-1])
-    return np.mean(origs, axis=0)
+    origs.append(variants[0])
+    origs.append(torch.rot90(variants[1], k=3, dims=(0, 1)))
+    origs.append(torch.rot90(variants[2], k=2, dims=(0, 1)))
+    origs.append(torch.rot90(variants[3], k=1, dims=(0, 1)))
+
+    origs.append(torch.flip(variants[4], dims=(0, 1)))
+    origs.append(torch.flip(torch.rot90(variants[5], k=3, dims=(0, 1)), dims=(0, 1)))
+    origs.append(torch.flip(torch.rot90(variants[6], k=2, dims=(0, 1)), dims=(0, 1)))
+    origs.append(torch.flip(torch.rot90(variants[7], k=1, dims=(0, 1)), dims=(0, 1)))
+    return torch.mean(torch.stack(origs), axis=0)
 
 
-def windowed_generator(padded_image: np.ndarray, window_size: int, subdivisions: int, batch_size: int = None):
+def windowed_generator(padded_image: torch.Tensor, window_size: int, subdivisions: int, batch_size: int = None):
     """Generator that yield tiles grouped by batch size.
 
     Args:
-        padded_image (np.ndarray): input image to be processed (already padded)
+        padded_image (np.ndarray): input image to be processed (already padded), supposed channels-first
         window_size (int): size of a single patch
         subdivisions (int): subdivision count on each patch to compute the step
         batch_size (int, optional): amount of patches in each batch. Defaults to None.
@@ -162,41 +168,44 @@ def windowed_generator(padded_image: np.ndarray, window_size: int, subdivisions:
     for x in range(0, width - window_size + 1, step):
         for y in range(0, height - window_size + 1, step):
             coords.append((x, y))
-            batch.append(padded_image[x:x + window_size, y:y + window_size])
+            # extract the tile, place channels first for batch
+            tile = padded_image[x:x + window_size, y:y + window_size]
+            batch.append(tile.permute(2, 0, 1))
             # yield the batch once full and restore lists right after
             if len(batch) == batch_size:
-                yield coords, np.array(batch)
+                yield coords, torch.stack(batch)
                 coords.clear()
                 batch.clear()
     # handle last (possibly unfinished) batch
     if len(batch) > 0:
-        yield coords, np.array(batch)
+        yield coords, torch.stack(batch)
 
 
-def reconstruct(canvas: np.ndarray, tile_size: int, coords: List[tuple], predictions: np.ndarray) -> np.ndarray:
+def reconstruct(canvas: torch.Tensor, tile_size: int, coords: List[tuple], predictions: torch.Tensor) -> torch.Tensor:
     """Helper function that iterates the result batch onto the given canvas to reconstruct
     the final result batch after batch.
 
     Args:
-        canvas (np.ndarray): container for the final image.
+        canvas (torch.Tensor): container for the final image.
         tile_size (int): size of a single patch.
         coords (List[tuple]): list of pixel coordinates corresponding to the batch items
-        predictions (np.ndarray): array containing patch predictions, shape (batch, tile_size, tile_size, num_classes)
+        predictions (torch.Tensor): array containing patch predictions, shape (batch, tile_size, tile_size, num_classes)
 
     Returns:
-        np.ndarray: the updated canvas, shape (padded_w, padded_h, num_classes)
+        torch.Tensor: the updated canvas, shape (padded_w, padded_h, num_classes)
     """
     for (x, y), patch in zip(coords, predictions):
         canvas[x:x + tile_size, y:y + tile_size] += patch
     return canvas
 
 
-def predict_smooth_windowing(image: np.ndarray,
+def predict_smooth_windowing(image: torch.Tensor,
                              tile_size: int,
                              subdivisions: int,
                              num_classes: int,
                              prediction_fn: Callable,
                              batch_size: int = None,
+                             channels_first: bool = False,
                              mirrored: bool = False) -> np.ndarray:
     """Allows to predict a large image in one go, dividing it in squared, fixed-size tiles and smoothly
     interpolating over them to produce a single, coherent output with the same dimensions.
@@ -208,25 +217,29 @@ def predict_smooth_windowing(image: np.ndarray,
         num_classes (int): number of output classes, required to rebuild
         prediction_fn (Callable): callback that takes the input batch and returns an output tensor
         batch_size (int, optional): size of each batch. Defaults to None.
+        channels_first (int, optional): whether the input image is channels-first or not
         mirrored (bool, optional): whether to use dihedral predictions (every simmetry). Defaults to False.
 
     Returns:
         np.ndarray: numpy array with dimensions (w, h, num_classes), containing smooth predictions
     """
+    if channels_first:
+        image = image.permute(1, 2, 0)
     width, height, _ = image.shape
     padded = pad_image(image=image, tile_size=tile_size, subdivisions=subdivisions)
     padded_width, padded_height, _ = padded.shape
     padded_variants = rotate_and_mirror(padded) if mirrored else [padded]
-    spline = _spline_2d(window_size=tile_size, power=2)
+    spline = _spline_2d(window_size=tile_size, power=2).to(image.device)
 
     results = []
     for img in padded_variants:
-        canvas = np.zeros((padded_width, padded_height, num_classes))
+        canvas = torch.zeros((padded_width, padded_height, num_classes), device=image.device)
         for coords, batch in windowed_generator(padded_image=img,
                                                 window_size=tile_size,
                                                 subdivisions=subdivisions,
                                                 batch_size=batch_size):
-            pred_batch = prediction_fn(batch)
+            # returns batch of channels-first, return to channels-last
+            pred_batch = prediction_fn(batch).permute(0, 2, 3, 1)
             pred_batch = [tile * spline for tile in pred_batch]
             canvas = reconstruct(canvas, tile_size=tile_size, coords=coords, predictions=pred_batch)
         canvas /= (subdivisions**2)

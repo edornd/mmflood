@@ -2,11 +2,11 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict
 
-import numpy as np
 import torch
 
 from floods.logging.functional import make_grid, mask_to_rgb
 from floods.utils.common import get_logger, prepare_folder
+from floods.utils.gis import rgb_ratio
 
 if TYPE_CHECKING:
     from floods.trainer.base import Trainer
@@ -106,7 +106,8 @@ class Checkpoint(BaseCallback):
     def __init__(self,
                  call_every: int,
                  model_folder: Path,
-                 name_format: str = "",
+                 monitor: str,
+                 name_suffix: str = "",
                  save_every: int = None,
                  save_best: bool = True,
                  verbose: bool = True) -> None:
@@ -115,10 +116,11 @@ class Checkpoint(BaseCallback):
         assert model_folder.exists() and model_folder.is_dir(), f"Invalid path '{str(model_folder)}'"
         assert save_every or save_best, "Specify one between save_every or save_best"
         self.model_folder = model_folder
-        self.name_format = name_format
+        self.name_format = name_suffix
         self.save_every = save_every
         self.save_best = save_best
         self.verbose = verbose
+        self.monitor = monitor
         self.best_epoch = None
 
     def _should_save(self, trainer: "Trainer") -> bool:
@@ -136,7 +138,12 @@ class Checkpoint(BaseCallback):
 
     def call(self, trainer: "Trainer", *args: Any, **kwargs: Any) -> Any:
         if self._should_save(trainer):
-            filename = self.model_folder / f"{self.name_format}.pth"
+            # build the name of the current model
+            score = trainer.current_scores["val"][self.monitor]
+            epoch = trainer.current_epoch
+            model_name = f"model-{epoch:02d}_loss-{trainer.current_loss:.2f}_{self.monitor}-{score:.2f}"
+            filename = self.model_folder / f"{model_name}.pth"
+            # wait, then store from process 0
             trainer.accelerator.wait_for_everyone()
             unwrapped_model = trainer.accelerator.unwrap_model(trainer.model)
             trainer.accelerator.save(unwrapped_model.state_dict(), filename)
@@ -170,7 +177,7 @@ class DisplaySamples(BaseCallback):
             LOG.warn("No content to be displayed")
         for i, (image, y_true, y_pred) in enumerate(trainer.sample_content):
             image = self.inverse_transform(image)
-            image = (image[:, :, :3] * 255).astype(np.uint8)
+            image = rgb_ratio(sar_image=image)
             if y_pred.ndim == 3:
                 y_pred = torch.argmax(y_pred, dim=0)
             true_masks = mask_to_rgb(y_true.numpy(), palette=self.color_palette)

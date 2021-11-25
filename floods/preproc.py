@@ -13,10 +13,10 @@ from rasterio.windows import Window
 from tqdm import tqdm
 
 from floods.config.preproc import ImageType, PreparationConfig, StatsConfig
-from floods.utils import DynamicOverlapTiler, SingleImageTiler
 from floods.utils.common import check_or_make_dir, print_config
-from floods.utils.functional import imread, mask_raster, write_window
+from floods.utils.gis import imread, mask_raster, write_window
 from floods.utils.ml import F16_EPS
+from floods.utils.tiling import DynamicOverlapTiler, SingleImageTiler
 
 LOG = logging.getLogger(__name__)
 

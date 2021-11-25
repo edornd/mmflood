@@ -80,14 +80,14 @@ def find_best_checkpoint(folder: Path, model_name: str = "*.pth", divider: str =
 
     for model_path in models:
         model_name = Path(model_path).stem
-        mtype, _, metric_str = model_name.split(divider)
-        assert mtype == "classifier" or mtype == "segmenter", f"Unknown model type '{mtype}'"
+        # expecting model_loss-value_metric-value, so take only the last
+        metric_str = model_name.rsplit(divider, maxsplit=1)[-1]
         model_metric = float(metric_str.split("-")[-1])
         if not current_best_metric or current_best_metric < model_metric:
             current_best_metric = model_metric
             current_best = model_path
 
-    return current_best
+    return Path(current_best)
 
 
 def load_class_weights(weights_path: Path, device: torch.device, normalize: bool = False) -> torch.Tensor:

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Tuple
+from typing import Dict, Tuple
 
 import albumentations as alb
 import torch
@@ -7,13 +7,14 @@ from albumentations.pytorch import ToTensorV2
 from torch import nn
 
 from floods.config import TrainConfig
+from floods.config.testing import TestConfig
 from floods.datasets.base import DatasetBase
 from floods.datasets.flood import FloodDataset
-from floods.metrics import F1Score, IoU
+from floods.metrics import ConfusionMatrix, F1Score, IoU, Metric
 from floods.models import create_decoder, create_encoder
 from floods.models.base import Segmenter
 from floods.models.modules import SegmentationHead
-from floods.transforms import Denormalize
+from floods.transforms import ClipNormalize, Denormalize
 from floods.utils.common import get_logger
 
 LOG = get_logger(__name__)
@@ -22,6 +23,8 @@ LOG = get_logger(__name__)
 def train_transforms(image_size: int,
                      mean: tuple,
                      std: tuple,
+                     clip_min: tuple,
+                     clip_max: tuple,
                      channel_dropout: float = 0.0):
     min_crop = image_size // 2
     max_crop = image_size
@@ -36,14 +39,17 @@ def train_transforms(image_size: int,
     if channel_dropout > 0:
         transforms.append(alb.ChannelDropout(p=channel_dropout))
         # if input channels are 4 and mean and std are for RGB only, copy red for IR
-    transforms.append(alb.Normalize(mean=mean, std=std))
+    transforms.append(ClipNormalize(mean=mean, std=std, clip_min=clip_min, clip_max=clip_max))
     transforms.append(ToTensorV2())
     return alb.Compose(transforms)
 
 
 def eval_transforms(mean: tuple,
-                    std: tuple) -> alb.Compose:
-    return alb.Compose([alb.Normalize(mean=mean, std=std), ToTensorV2()])
+                    std: tuple,
+                    clip_min: tuple,
+                    clip_max: tuple) -> alb.Compose:
+    return alb.Compose([ClipNormalize(mean=mean, std=std, clip_min=clip_min, clip_max=clip_max),
+                        ToTensorV2()])
 
 
 def inverse_transform(mean: tuple, std: tuple):
@@ -60,13 +66,20 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     data_root = Path(config.data_root)
     mean = FloodDataset.mean()[:config.in_channels]
     std = FloodDataset.std()[:config.in_channels]
+    clip_min = FloodDataset.clip_min()[:config.in_channels]
+    clip_max = FloodDataset.clip_max()[:config.in_channels]
     train_transform = train_transforms(image_size=config.image_size,
                                        mean=mean,
                                        std=std,
+                                       clip_min=clip_min,
+                                       clip_max=clip_max,
                                        channel_dropout=config.channel_drop)
     # store here just for config logging purposes
     config.model.transforms = str(train_transform)
-    eval_transform = eval_transforms(mean=mean, std=std)
+    eval_transform = eval_transforms(mean=mean,
+                                     std=std,
+                                     clip_min=clip_min,
+                                     clip_max=clip_max,)
     # also print them, just in case
     LOG.info("Train transforms: %s", str(train_transform))
     LOG.info("Eval. transforms: %s", str(eval_transform))
@@ -130,3 +143,13 @@ def prepare_metrics(config: TrainConfig, device: torch.device, num_classes: int)
     LOG.debug("Train metrics: %s", str(list(train_metrics.keys())))
     LOG.debug("Eval. metrics: %s", str(list(valid_metrics.keys())))
     return train_metrics, valid_metrics
+
+
+def prepare_test_metrics(config: TestConfig, device: torch.device, num_classes: int) -> Dict[str, Metric]:
+    test_metrics = {e.name: e.value(num_classes=num_classes, device=device) for e in config.test_metrics}
+    # include class-wise metrics
+    test_metrics.update(dict(class_iou=IoU(num_classes=num_classes, reduction=None, device=device),
+                             class_f1=F1Score(num_classes=num_classes, reduction=None, device=device)))
+    # include a confusion matrix
+    test_metrics.update(dict(conf_mat=ConfusionMatrix(num_classes=num_classes, device=device)))
+    return test_metrics

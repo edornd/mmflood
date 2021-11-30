@@ -9,7 +9,6 @@ CUDA_VISIBLE_DEVICES=$CUDA accelerate launch --config accelerate/multi-gpu.json 
 --data-root /mnt/userdata/montello_data/shub/imgs_zoom11/ready-to-train \
 --model.encoder=tresnet_m \
 --trainer.batch-size=8 \
---pippo \
 --trainer.patience=30 \
 --optimizer.lr=1e-3 \
 --scheduler.target=cosine \

@@ -6,6 +6,7 @@ import rasterio
 from rasterio.io import DatasetReader
 from rasterio.windows import Window
 from glob import glob
+from tqdm import tqdm
 
 def imread(path: Path, channels_first: bool = True) -> np.ndarray:
     """Wraps rasterio open functionality to read the numpy array and exit the context.
@@ -153,8 +154,10 @@ def tile_body_water_ratio(image: np.ndarray) -> float:
 
     # get counter of 1s
     _, u_cnt = np.unique(nan_filtered, return_counts=True)
-
     # return the ratio
+    if(len(u_cnt) != 2): # if there is no body water, return the ratio as empty
+        return 0
+
     return u_cnt[1] / len(nan_filtered)
 
 
@@ -171,7 +174,7 @@ def mask_body_ratio_from_threshold(gt_list: list,
     # create the list for filtering the elements, set to zero by default
     mask = np.zeros(len(gt_list))
 
-    for i, gt in enumerate(gt_list):
+    for i, gt in enumerate(tqdm(gt_list)):
         # 1. read the image
         # 2. get the body water ratio
         # 3. if the ratio is above the threshold, set the mask to 1, meaning use the image
@@ -180,6 +183,7 @@ def mask_body_ratio_from_threshold(gt_list: list,
         if ratio >= ratio_threshold:
             mask[i] = 1 
 
+    _ , counts = np.unique(mask, return_counts=True)
     # return mask
-    return mask
+    return mask, counts
     

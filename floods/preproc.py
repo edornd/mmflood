@@ -136,7 +136,7 @@ def _decibel(data: np.ndarray):
         Changed to custom to the following (for better distribution of pixels + cap):    
     """
     # np.clip( , a_min = -50, a_max=0)
-    return 10 * np.log(data + F16_EPS)
+    return np.log10(1 + data + F16_EPS)
 
 
 def _minmax_dem(data: np.ndarray):

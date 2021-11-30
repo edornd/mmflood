@@ -72,22 +72,26 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     LOG.info("Train transforms: %s", str(train_transform))
     LOG.info("Eval. transforms: %s", str(eval_transform))
 
-    complete_dataset = FloodDataset(path=data_root,
-                                    subset="train",
-                                    include_dem=config.include_dem)
-
-    # imgs_mask = mask_body_ratio_from_threshold(complete_dataset.label_files, 0)
-
-    img, mask = complete_dataset.__getitem__(0)
-    LOG.info("Mask shape: %s", str(mask.shape))
-
-
     # create train and validation sets
     train_dataset = FloodDataset(path=data_root,
                                  subset="train",
                                  include_dem=config.include_dem,
-                                 transform=train_transform)#.add_mask(imgs_mask)
-    
+                                 transform=train_transform)
+    if(config.segmentation_threshold != None and config.segmentation_threshold > 0):
+
+        # create a temporary dataset to generate a mask useful to filter all the images
+        # for which the amout of segmentation is lower than a given percentage
+        complete_dataset = FloodDataset(path=data_root,
+                                        subset="train",
+                                        include_dem=config.include_dem)
+
+        # get and apply mask to the training set
+        imgs_mask, counts = mask_body_ratio_from_threshold(complete_dataset.label_files, config.segmentation_threshold)
+        train_dataset.add_mask(imgs_mask)
+
+        LOG.info(f"Number of elements kept: {counts[1]}")
+        LOG.info(f"Number of elements removed: {counts[0]}")
+        LOG.info(f"Ratio: {round(counts[1]/len(imgs_mask), 2)}")
 
     valid_dataset = FloodDataset(path=data_root,
                                  subset="val",

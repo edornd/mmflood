@@ -1,6 +1,7 @@
 from typing import Any, Dict, Sequence
 
 import numpy as np
+import torch
 from albumentations import Normalize
 from torch import Tensor
 
@@ -8,8 +9,8 @@ from torch import Tensor
 class Denormalize:
 
     def __init__(self, mean: Sequence[float] = (0.485, 0.456, 0.406), std: Sequence[float] = (0.229, 0.224, 0.225)):
-        self.mean = mean
-        self.std = std
+        self.mean = torch.tensor(mean)
+        self.std = torch.tensor(std)
 
     def __call__(self, tensor: Tensor) -> Tensor:
         """
@@ -22,10 +23,9 @@ class Denormalize:
         tensor = tensor.unsqueeze(0) if single_image else tensor
         channels = tensor.size(1)
         # slice to support a lower number of channels
-        means = self.mean[:channels]
-        stds = self.std[:channels]
-        for t, mean, std in zip(tensor, means, stds):
-            t[:3].mul_(std - 1e-6).add_(mean)
+        means = self.mean[:channels].view(1, -1, 1, 1).to(tensor.device)
+        stds = self.std[:channels].view(1, -1, 1, 1).to(tensor.device)
+        tensor = tensor * stds + means
         # swap from [B, C, H, W] to [B, H, W, C]
         tensor = tensor.permute(0, 2, 3, 1)
         tensor = tensor[0] if single_image else tensor

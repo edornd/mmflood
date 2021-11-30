@@ -67,8 +67,11 @@ class FocalTverskyLoss(nn.Module):
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
-        self.weight = weight if weight is not None else 1.0
         self.ignore_index = ignore_index
+        # normalize weights so that they sum to 1
+        if isinstance(weight, torch.Tensor):
+            weight /= weight.sum()
+        self.weight = weight if weight is not None else 1.0
 
     def forward(self, preds: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         num_classes = preds.size(1)

@@ -50,6 +50,7 @@ def write_window(window: Window, source: DatasetReader, path: Path) -> None:
 
 def rgb_ratio(sar_image: np.ndarray,
               channels_first: bool = False,
+              weights: tuple = (1.0, 2.0, 0.1),
               scale: float = 255,
               dtype: np.dtype = np.uint8) -> np.ndarray:
     assert sar_image.ndim == 3, "batch not supported"
@@ -57,7 +58,8 @@ def rgb_ratio(sar_image: np.ndarray,
         sar_image = sar_image.transpose(1, 2, 0)
     vv = sar_image[:, :, 0]
     vh = sar_image[:, :, 1]
-    rgb = np.stack((vv, vh * 2.0, vv / vh / 50.0), axis=-1)
+    a, b, c = weights
+    rgb = np.stack((a * vv, b * vh, c * (vv / vh)), axis=-1)
     image = np.clip(rgb, 0, 1)
     image = (image * scale).astype(dtype)
     return image

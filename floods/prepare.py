@@ -16,16 +16,12 @@ from floods.models.base import Segmenter
 from floods.models.modules import SegmentationHead
 from floods.transforms import ClipNormalize, Denormalize
 from floods.utils.common import get_logger
+from floods.utils.tiling.functional import mask_body_ratio_from_threshold
 
 LOG = get_logger(__name__)
 
 
-def train_transforms(image_size: int,
-                     mean: tuple,
-                     std: tuple,
-                     clip_min: tuple,
-                     clip_max: tuple,
-                     channel_dropout: float = 0.0):
+def train_transforms_base(image_size: int):
     min_crop = image_size // 2
     max_crop = image_size
     transforms = [
@@ -33,14 +29,23 @@ def train_transforms(image_size: int,
         alb.ElasticTransform(alpha=1, sigma=30, alpha_affine=30),
         alb.Flip(p=0.5),
         alb.RandomRotate90(p=0.5),
-        alb.GaussianBlur(p=0.5),
-        alb.GaussNoise(p=0.5),
     ]
+    # if input channels are 4 and mean and std are for RGB only, copy red for IR
+    return alb.Compose(transforms)
+
+
+def train_transforms_sar():
+    transforms = [
+        alb.GaussianBlur(blur_limit=(3, 11), p=0.5),
+        alb.GaussNoise(var_limit=0.5, p=0.5),
+    ]
+    return alb.Compose(transforms)
+
+
+def train_transforms_dem(channel_dropout: float = 0.0):
+    transforms = []
     if channel_dropout > 0:
         transforms.append(alb.ChannelDropout(p=channel_dropout))
-        # if input channels are 4 and mean and std are for RGB only, copy red for IR
-    transforms.append(ClipNormalize(mean=mean, std=std, clip_min=clip_min, clip_max=clip_max))
-    transforms.append(ToTensorV2())
     return alb.Compose(transforms)
 
 
@@ -68,30 +73,34 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     std = FloodDataset.std()[:config.in_channels]
     clip_min = FloodDataset.clip_min()[:config.in_channels]
     clip_max = FloodDataset.clip_max()[:config.in_channels]
-    train_transform = train_transforms(image_size=config.image_size,
-                                       mean=mean,
-                                       std=std,
-                                       clip_min=clip_min,
-                                       clip_max=clip_max,
-                                       channel_dropout=config.channel_drop)
+
+    base_trf = train_transforms_base(image_size=config.image_size)
+    sar_trf = train_transforms_sar()
+    dem_trf = train_transforms_dem(config.channel_drop)
     # store here just for config logging purposes
-    config.model.transforms = str(train_transform)
-    eval_transform = eval_transforms(mean=mean,
-                                     std=std,
-                                     clip_min=clip_min,
-                                     clip_max=clip_max,)
+    config.model.transforms = str(base_trf) + str(sar_trf) + str(dem_trf)
+    normalize = eval_transforms(mean=mean,
+                                std=std,
+                                clip_min=clip_min,
+                                clip_max=clip_max,)
     # also print them, just in case
-    LOG.info("Train transforms: %s", str(train_transform))
-    LOG.info("Eval. transforms: %s", str(eval_transform))
+    LOG.info("Train transforms: %s", config.model.transforms)
+    LOG.info("Eval. transforms: %s", str(normalize))
     # create train and validation sets
     train_dataset = FloodDataset(path=data_root,
                                  subset="train",
                                  include_dem=config.include_dem,
-                                 transform=train_transform)
+                                 transform_base=base_trf,
+                                 transform_sar=sar_trf,
+                                 transform_dem=dem_trf,
+                                 normalization=normalize)
+    valid_dataset = FloodDataset(path=data_root,
+                                 subset="val",
+                                 include_dem=config.include_dem,
+                                 normalization=normalize)
+    # create a temporary dataset to generate a mask useful to filter all the images
+    # for which the amout of segmentation is lower than a given percentage
     if(config.segmentation_threshold is not None and config.segmentation_threshold > 0):
-
-        # create a temporary dataset to generate a mask useful to filter all the images
-        # for which the amout of segmentation is lower than a given percentage
         complete_dataset = FloodDataset(path=data_root,
                                         subset="train",
                                         include_dem=config.include_dem)
@@ -104,10 +113,6 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
         LOG.info(f"Number of elements removed: {counts[0]}")
         LOG.info(f"Ratio: {round(counts[1]/len(imgs_mask), 2)}")
 
-    valid_dataset = FloodDataset(path=data_root,
-                                 subset="val",
-                                 include_dem=config.include_dem,
-                                 transform=eval_transform)
     return train_dataset, valid_dataset
 
 

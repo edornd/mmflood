@@ -130,7 +130,8 @@ class TrainConfig(BaseSettings):
     image_size: int = Field(512, description="Size of the input images")
     in_channels: int = Field(3, description="How many input channels, including extras")
     class_weights: str = Field(None, description="Optional path to a class weight array (npy format)")
-    segmentation_threshold: float = Field(None, description="Optional value to filter images with an amount of augmentation lower than this value")
+    segmentation_threshold: float = Field(
+        None, description="Optional value to filter images with an amount of augmentation lower than this value")
     trainer: TrainerConfig = TrainerConfig()
     # dataset and augmentation options
     data_root: str = Field(required=True, description="Path to the dataset")

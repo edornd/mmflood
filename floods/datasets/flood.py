@@ -25,12 +25,18 @@ class FloodDataset(DatasetBase):
                  path: Path,
                  subset: str = "train",
                  include_dem: bool = False,
-                 transform: Callable = None) -> None:
+                 transform_base: Callable = None,
+                 transform_sar: Callable = None,
+                 transform_dem: Callable = None,
+                 normalization: Callable = None) -> None:
         super().__init__()
         self._include_dem = include_dem
         self._name = "flood"
         self._subset = subset
-        self.transform = transform
+        self.transform_base = transform_base
+        self.transform_sar = transform_sar
+        self.transform_dem = transform_dem
+        self.normalization = normalization
         # gather files to build the list of available pairs
         path = path / subset
         self.image_files = sorted(glob(str(path / "sar" / "*.tif")))
@@ -45,7 +51,7 @@ class FloodDataset(DatasetBase):
             assert image_tile == label_tile, f"image: {image_tile} != mask: {label_tile}"
         # add the optional digital elevation map (DEM)
         if self._include_dem:
-            self.dem_files = sorted(glob(str(path / "dem " / "*.tif")))
+            self.dem_files = sorted(glob(str(path / "dem" / "*.tif")))
             assert len(self.image_files) == len(self.dem_files), "Length mismatch between tiles and DEMs"
             for image, dem in zip(self.image_files, self.dem_files):
                 image_tile = Path(image).stem
@@ -113,8 +119,20 @@ class FloodDataset(DatasetBase):
             dem = imread(self.dem_files[index], channels_first=False).astype(np.float32)
             image = np.dstack((image, dem))
         # preprocess if required, cast mask to Long for torch losses
-        if self.transform is not None:
-            pair = self.transform(image=image, mask=label)
+        if self.transform_base is not None:
+            pair = self.transform_base(image=image, mask=label)
+            image = pair.get("image")
+            label = pair.get("mask")
+        if self.transform_sar is not None:
+            pair = self.transform_sar(image=image[:, :, :-1], mask=label)
+            image[:, :, :-1] = pair.get("image")
+            label = pair.get("mask")
+        if self.transform_dem is not None:
+            pair = self.transform_dem(image=image[:, :, -1], mask=label)
+            image[:, :, -1] = pair.get("image")
+            label = pair.get("mask")
+        if self.normalization:
+            pair = self.normalization(image=image, mask=label)
             image = pair.get("image")
             label = pair.get("mask")
         return image, label

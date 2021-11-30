@@ -1,58 +1,32 @@
 import logging
-import math
+from datetime import datetime
 from pathlib import Path
-from typing import Union
 
 import numpy as np
 import torch
+from plotille import histogram
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 
+from floods.config.preproc import StatsConfig
 from floods.datasets.flood import FloodDataset
 
 LOG = logging.getLogger(__name__)
 
-VV25 = -29.25275421142578
-VV75 = -15.67404842376709
-VH25 = -44.751529693603516
-VH75 = -30.273120880126953
-DEM25 = 19.0
-DEM75 = 187.0
+# Filter values for VV, VH, DEM to calculate statistics
+# Low and high filters are the 25 and 75 percentiles for each channel
+LOW_FILTER = np.array([[0.5226023197174072], [0.11324059963226318], [1434.2500]])
+HIGH_FILTER = np.array([[1.8945084810256958], [0.4730878472328186], [1676.5000]])
+
+# Plot title and histogram on the console of a given array
 
 
-# Running mean and variance using Welford's algorithm
-class RunningStats:
-    def __init__(self):
-        self.n = 0
-        self.old_m = 0
-        self.new_m = 0
-        self.old_s = 0
-        self.new_s = 0
+def plot_histogram(data: np.ndarray, title: str, low: float = None, high: float = None):
+    print(f'Histogram of {title}')
+    print(histogram(data, bins=100, X_label='Value', Y_label='Frequency', x_min=low, x_max=high))
+    return
 
-    def clear(self):
-        self.n = 0
 
-    def push(self, x):
-        self.n += 1
-
-        if self.n == 1:
-            self.old_m = self.new_m = x
-            self.old_s = 0
-        else:
-            self.new_m = self.old_m + (x - self.old_m) / self.n
-            self.new_s = self.old_s + (x - self.old_m) * (x - self.new_m)
-
-            self.old_m = self.new_m
-            self.old_s = self.new_s
-
-    def mean(self):
-        return self.new_m if self.n else 0.0
-
-    def variance(self):
-        return self.new_s / (self.n - 1) if self.n > 1 else 0.0
-
-    def standard_deviation(self):
-        return math.sqrt(self.variance())
+# Test a single item from the dataset to make sure it respects given standards
 
 
 def test_dataset_item(dataset_path: Path):
@@ -66,32 +40,52 @@ def test_dataset_item(dataset_path: Path):
     assert mask.min() >= 0 and mask.max() <= 255
 
 
-def sum_sumsq_len_for_channel(data: np.array, perc25: float, perc75: float) -> Union[float, float, float]:
-    valid = (data[0] > perc25) & (data[0] < perc75)
-    data = data[valid]
-    return data.sum(), np.square(data).sum(), len(data)
+# Compute the mean and the standard deviation of a given dataset
+def compute_mean_std(dataset_path: Path):
 
-
-def test_dataset_iter(dataset_path: Path):
-
-    ####### WORK IN PROGRESS ################
-
-    # transform = eval_transforms(mean=FloodDataset.mean(), std=FloodDataset.std())
     dataset = FloodDataset(dataset_path, subset="train", include_dem=True, transform=None)
-    loader = DataLoader(dataset, batch_size=1, num_workers=4, shuffle=False)
+    loader = DataLoader(dataset, batch_size=dataset.__len__(), num_workers=4, shuffle=True)
 
-    mean = torch.zeros(3)
-    min_val = torch.ones(3) * np.finfo(np.float16).max
-    max_val = torch.ones(3) * np.finfo(np.float16).min
+    images, labels = next(iter(loader))
+    images = np.moveaxis(images.numpy(), 1, 0)
 
-    for image, label in tqdm(loader):
-        valid = label.squeeze(0) != 255
-        data = image.squeeze(0)[:, valid]
-        min_val = np.minimum(min_val, data.min(axis=-1))
-        max_val = np.maximum(max_val, data.max(axis=-1))
-        mean += data.sum(axis=-1) / torch.count_nonzero(valid)
+    valid = labels != 255
+    data = images[:, valid]
+    idx = (data >= LOW_FILTER) & (data <= HIGH_FILTER)
+    data[idx] = np.nan
+    with open('outputs/stats.txt', 'a') as file:
+        file.write(f'{str(datetime.now())}\n')
+        file.write(f'Mean: {np.nanmean(data, axis=1)}\n')
+        file.write(f'Std: {np.nanstd(data, axis=1)}\n')
 
-    mean /= len(loader)
-    LOG.info(f"mean: {mean}")
-    LOG.info(f"min: {min_val}")
-    LOG.info(f"max: {max_val}")
+    return
+
+
+# Compute the mean and the standard deviation of a given dataset
+
+
+def histograms_for_sanity_check(dataset_path: Path):
+    dataset = FloodDataset(dataset_path, subset="train", include_dem=True, transform=None)
+    loader = DataLoader(dataset, batch_size=64, num_workers=4, shuffle=True)
+
+    images, labels = next(iter(loader))
+    images = np.moveaxis(images.numpy(), 1, 0)
+
+    valid = labels != 255
+    data = images[:, valid]
+    plot_histogram(data[0], 'VV', LOW_FILTER[0][0], HIGH_FILTER[0][0])
+    plot_histogram(data[1], 'VH', LOW_FILTER[1][0], HIGH_FILTER[1][0])
+    plot_histogram(data[2], 'DEM', LOW_FILTER[2][0], HIGH_FILTER[2][0])
+
+    return
+
+
+def test_dataset(config: StatsConfig):
+    dataset_path = Path(config.data_root)
+    test_dataset_item(dataset_path)
+    LOG.info("Triplet of images correct - test passed")
+    histograms_for_sanity_check(dataset_path)
+    LOG.info("Histograms plotted")
+    compute_mean_std(dataset_path)
+    LOG.info("Iteration of images correct - test passed")
+    return

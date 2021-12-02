@@ -16,10 +16,8 @@ class FloodDataset(DatasetBase):
     _palette = {0: (0, 0, 0), 1: (255, 255, 255), 255: (255, 0, 255)}
     _ignore_index = 255
     # manually modified to allow channel swap between the first two
-    _mean = (0.755, 0.755, 142.412)
-    _std = (0.091, 0.091, 81.101)
-    _min = (0.2, 0.2, -120.0)
-    _max = (1.1, 1.1, 6000.0)
+    _mean = (0.37056682, 0.08416456, 21.54056)
+    _std = (1.8128073, 0.49054724, 150.55571)
 
     def __init__(self,
                  path: Path,
@@ -84,11 +82,11 @@ class FloodDataset(DatasetBase):
 
     @classmethod
     def clip_min(cls) -> Tuple[float, ...]:
-        return cls._min
+        return [m - s * 4 for m, s in zip(cls._mean, cls._std)]
 
     @classmethod
     def clip_max(cls) -> Tuple[float, ...]:
-        return cls._max
+        return [m + s * 4 for m, s in zip(cls._mean, cls._std)]
 
     def stage(self) -> str:
         return self._subset

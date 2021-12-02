@@ -36,8 +36,7 @@ def train_transforms_base(image_size: int):
 
 def train_transforms_sar():
     transforms = [
-        alb.GaussianBlur(blur_limit=(3, 11), p=0.5),
-        alb.GaussNoise(var_limit=0.5, p=0.5),
+        alb.GaussianBlur(blur_limit=(3, 11), p=0.5)
     ]
     return alb.Compose(transforms)
 
@@ -118,6 +117,11 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
 
 def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
     cfg = config.model
+
+    # if cfg.decoder in ('deeplab', 'pspnet'):
+    #     #...
+    #     return # model
+
     # instead of creating a new var, encoder is exploited for different purposes
     # we expect a single encoder name, or a comma-separated list of names, one for each modality
     # e.g. valid examples: 'tresnet_m' - 'resnet34,resnet34'

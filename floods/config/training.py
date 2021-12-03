@@ -107,7 +107,7 @@ class LossConfig(InstantiableSettings):
 
 class ModelConfig(EnvConfig):
     encoder: str = Field("resnet34", description="Which backbone to use (see timm library)")
-    decoder: str = Field("unet", description="Which decoder to apply")
+    decoder: str = Field("PSPDenseNet", description="Which decoder to apply")
     pretrained: bool = Field(True, description="Whether to use a pretrained encoder or not")
     freeze: bool = Field(False, description="Freeze the feature extractor in incremental steps")
     output_stride: int = Field(16, description="Output stride for ResNet-like models")

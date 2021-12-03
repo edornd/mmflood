@@ -6,6 +6,7 @@ import torch
 from albumentations.pytorch import ToTensorV2
 from torch import nn
 
+import floods.models.architectures as archs
 from floods.config import TrainConfig
 from floods.config.testing import TestConfig
 from floods.datasets.base import DatasetBase
@@ -19,7 +20,7 @@ from floods.utils.common import get_logger
 from floods.utils.tiling.functional import mask_body_ratio_from_threshold
 
 LOG = get_logger(__name__)
-
+AVAILABLE_ARCHITECTURES = ('UNet', 'DeepLab', 'PSPDenseNet')
 
 def train_transforms_base(image_size: int):
     min_crop = image_size // 2
@@ -118,9 +119,10 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
 def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
     cfg = config.model
 
-    # if cfg.decoder in ('deeplab', 'pspnet'):
-    #     #...
-    #     return # model
+    # if the model is in one of the already hard-coded architectures, use it
+    if cfg.decoder in AVAILABLE_ARCHITECTURES:
+        LOG.info("Using %s architecture", cfg.decoder)
+        return getattr(archs, cfg.decoder)(num_classes)
 
     # instead of creating a new var, encoder is exploited for different purposes
     # we expect a single encoder name, or a comma-separated list of names, one for each modality

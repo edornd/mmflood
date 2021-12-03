@@ -16,6 +16,8 @@ LOG = get_logger(__name__)
 
 
 def train(config: TrainConfig):
+    torch.autograd.set_detect_anomaly(True)
+
     # assertions before starting
     assert config.trainer.amp and torch.backends.cudnn.enabled, "AMP requires CUDNN backend to be enabled."
     # prepare accelerator ASAP
@@ -89,6 +91,7 @@ def train(config: TrainConfig):
                            scheduler=scheduler,
                            criterion=loss,
                            categories=train_set.categories(),
+                           name=config.model.decoder,
                            train_metrics=train_metrics,
                            val_metrics=valid_metrics,
                            logger=logger,

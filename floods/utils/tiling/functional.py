@@ -1,3 +1,4 @@
+from glob import glob
 from typing import Generator, Union
 
 import numpy as np
@@ -125,6 +126,14 @@ def mask_body_ratio_from_threshold(gt_list: list, ratio_threshold: float) -> np.
     # for each mask in the path read the image array and get the tile body water ratio
     assert len(gt_list) > 0, "No masks found in the path"
 
+    # check if the mask has been cached already
+    if (glob(f'data/cache/_mask_t{str(ratio_threshold)[-2:]}.npy')):
+
+        mask = np.load(f'data/cache/_mask_t{ratio_threshold}.npy')
+        _, counts = np.unique(mask, return_counts=True)
+
+        return mask, counts
+
     # create the list for filtering the elements, set to zero by default
     mask = np.zeros(len(gt_list))
 
@@ -138,4 +147,8 @@ def mask_body_ratio_from_threshold(gt_list: list, ratio_threshold: float) -> np.
             mask[i] = 1
 
     _, counts = np.unique(mask, return_counts=True)
+
+    # save a cache file of the mask for future usage
+    np.save(f'data/cache/_mask_t{str(ratio_threshold)[-2:]}.npy', mask)
+
     return mask, counts

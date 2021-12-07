@@ -100,13 +100,13 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
                                  normalization=normalize)
     # create a temporary dataset to generate a mask useful to filter all the images
     # for which the amout of segmentation is lower than a given percentage
-    if(config.segmentation_threshold is not None and config.segmentation_threshold > 0):
+    if(config.mask_body_ratio is not None and config.mask_body_ratio > 0):
         complete_dataset = FloodDataset(path=data_root,
                                         subset="train",
                                         include_dem=config.include_dem)
 
         # get and apply mask to the training set
-        imgs_mask, counts = mask_body_ratio_from_threshold(complete_dataset.label_files, config.segmentation_threshold)
+        imgs_mask, counts = mask_body_ratio_from_threshold(complete_dataset.label_files, config.mask_body_ratio)
         train_dataset.add_mask(imgs_mask)
 
         LOG.info(f"Number of elements kept: {counts[1]}")

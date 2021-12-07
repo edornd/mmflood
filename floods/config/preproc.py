@@ -32,7 +32,6 @@ class PreparationConfig(EnvConfig):
     morphology: bool = Field(True, description="whether to use morphological operators or not")
     morph_kernel: int = Field(5, description="Kernel size for mask preprocessing using opening/closing")
     nan_threshold: float = Field(0.75, description="Percentage of invalid pixels before discaring the tile")
-    mask_body_ratio: float = Field(0.01, description="Percentage of ones in the mask before discarding the tile")
 
     def subset_exists(cls, v):
         allowed = {"train", "test", "val"}

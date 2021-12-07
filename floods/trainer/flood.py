@@ -19,7 +19,6 @@ class FloodTrainer(Trainer):
                  model: nn.Module,
                  criterion: nn.Module,
                  categories: Dict[int, str],
-                 name: str,
                  optimizer: Optimizer = None,
                  scheduler: Any = None,
                  tiler: Callable = None,
@@ -42,27 +41,16 @@ class FloodTrainer(Trainer):
                          stage=stage,
                          debug=debug)
         self.tiler = tiler
-        self.name = name
 
     def train_batch(self, batch: Any) -> torch.Tensor:
         # init losses and retrieve x, y
         x, y = batch
-        print(f"MODEL NAME {self.name}")
+
         # forward and loss on segmentation task
         with self.accelerator.autocast():
             out, _ = self.model(x)
-
-            # if self.name[:3] == 'PSP':
-            #     assert out[0].size()[1:] == y.size()[1:], f"Size mismatch: {out[0].size()[1:]} != { y.size()[1:]}"
-            #     assert out.size()[1] == self.num_classes, f"Size mismatch: {out.size()} != {self.num_classes}"
-            #     loss = self.criterion(out[0], y)
-            #     loss += self.criterion(out[1], y) * 0.4
-            #     out = out[0]
-            # else:
-            #     assert out.size()[2:] == y.size()[1:], f"Size mismatch: {out.size()} != {y.size()}"
-            #     assert out.size()[1] == self.num_classes, f"Size mismatch: {out.size()} != {self.num_classes}"
-            #     loss = self.criterion(out, y)
             loss = self.criterion(out, y.long())
+
         # gather and update metrics
         # we group only the 'standard' images, not the rotated ones
         y_true = self.accelerator.gather(y)
@@ -123,4 +111,26 @@ class FloodTrainer(Trainer):
         # update metrics and return losses
         self._update_metrics(y_true=y, y_pred=y_pred, stage=TrainerStage.test)
         # result_data = {"inputs": x.cpu(), "targets": y.cpu(), "preds": torch.argmax(y_pred, dim=1).cpu()}
+        return loss, {}
+
+
+class PSPTrainer(FloodTrainer):
+    def train_batch(self, batch: Any) -> torch.Tensor:
+        # init losses and retrieve x, y
+        x, y = batch
+
+        # forward and loss on segmentation task
+        with self.accelerator.autocast():
+            (out, aux), _ = self.model(x)
+            loss = self.criterion(out, y.long())
+            loss += self.criterion(aux, y.long()) * 0.4
+
+        # gather and update metrics
+        # we group only the 'standard' images, not the rotated ones
+        y_true = self.accelerator.gather(y)
+        y_pred = self.accelerator.gather(out)
+        self._update_metrics(y_true=y_true, y_pred=y_pred, stage=TrainerStage.train)
+        # debug if active
+        if self.debug:
+            self._debug_training(x=x.dtype, y=y.dtype, pred=out.dtype, loss=loss)
         return loss, {}

@@ -82,11 +82,11 @@ class PSPNet(BaseModel):
 
     def forward(self, x):
         input_size = (x.size()[2], x.size()[3])
-        x = self.initial(x)
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x_aux = self.layer3(x)
-        x = self.layer4(x_aux)
+        x = self.initial(x)  # 512 x 512 x 3
+        x = self.layer1(x)  # 256 x 256 x 64
+        x = self.layer2(x)  # 128 x 128 x 128
+        x_aux = self.layer3(x)  # 64 x 64 x 256
+        x = self.layer4(x_aux)  # 32 x 32
 
         output = self.master_branch(x)
         output = F.interpolate(output, size=input_size, mode='bilinear')
@@ -185,8 +185,8 @@ class PSPDenseNet(BaseModel):
         if self.training and self.use_aux:
             aux = self.auxiliary_branch(x_aux)
             aux = F.interpolate(aux, size=input_size, mode='bilinear')
-            return output, aux
-        return output
+            return (output, aux), None
+        return output, None
 
     def get_backbone_params(self):
         return chain(self.block0.parameters(), self.block1.parameters(), self.block2.parameters(),

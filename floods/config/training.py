@@ -7,7 +7,7 @@ from torch.optim import SGD, Adam, AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR, ExponentialLR, ReduceLROnPlateau
 
 from floods.config.base import CallableEnum, EnvConfig, Initializer, InstantiableSettings
-from floods.losses import CombinedLoss, DualTanimotoLoss, FocalLoss, FocalTverskyLoss, TanimotoLoss
+from floods.losses import CombinedLoss, DualTanimotoLoss, FocalLoss, FocalTverskyLoss, LovaszSoftmax, TanimotoLoss
 from floods.metrics import F1Score, IoU, Precision, Recall
 
 
@@ -28,6 +28,7 @@ class Losses(CallableEnum):
     focal = FocalLoss
     tversky = FocalTverskyLoss
     tanimoto = TanimotoLoss
+    lovasz = LovaszSoftmax
     compl = DualTanimotoLoss
     combo = Initializer(CombinedLoss,
                         criterion_a=Initializer(CrossEntropyLoss),

@@ -159,10 +159,10 @@ class Xception(nn.Module):
 
         # Stride for block 3 (entry flow), and the dilation rates for middle flow and exit flow
         if output_stride == 16:
-            b3_s, _, ef_d = 2, 1, (1, 2)
+            b3_s, mf_d, ef_d = 2, 1, (1, 2)
 
         if output_stride == 8:
-            b3_s, _, ef_d = 1, 2, (2, 4)
+            b3_s, mf_d, ef_d = 1, 2, (2, 4)
 
         # Entry Flow
         self.conv1 = nn.Conv2d(in_channels, 32, 3, 2, padding=1, bias=False)

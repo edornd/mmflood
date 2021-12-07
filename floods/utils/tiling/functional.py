@@ -129,7 +129,7 @@ def mask_body_ratio_from_threshold(gt_list: list, ratio_threshold: float) -> np.
     # check if the mask has been cached already
     if (glob(f'data/cache/_mask_t{str(ratio_threshold)[-2:]}.npy')):
 
-        mask = np.load(f'data/cache/_mask_t{ratio_threshold}.npy')
+        mask = np.load(f'./data/cache/_mask_t{ratio_threshold}.npy')
         _, counts = np.unique(mask, return_counts=True)
 
         return mask, counts
@@ -149,6 +149,6 @@ def mask_body_ratio_from_threshold(gt_list: list, ratio_threshold: float) -> np.
     _, counts = np.unique(mask, return_counts=True)
 
     # save a cache file of the mask for future usage
-    np.save(f'data/cache/_mask_t{str(ratio_threshold)[-2:]}.npy', mask)
+    np.save(f'./data/cache/_mask_t{str(ratio_threshold)[-2:]}.npy', mask)
 
     return mask, counts

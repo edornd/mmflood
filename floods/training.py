@@ -19,7 +19,7 @@ def train(config: TrainConfig):
     torch.autograd.set_detect_anomaly(True)
 
     # assertions before starting
-    assert config.trainer.amp and torch.backends.cudnn.enabled, "AMP requires CUDNN backend to be enabled."
+    assert torch.backends.cudnn.enabled, "AMP requires CUDNN backend to be enabled."
     # prepare accelerator ASAP
     accelerator = Accelerator(fp16=config.trainer.amp, cpu=config.trainer.cpu)
 

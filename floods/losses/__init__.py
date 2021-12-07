@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.nn import functional as func
 
-from floods.losses.functional import one_hot_batch, smooth_weights, tanimoto_loss
+from floods.losses.functional import lovasz_softmax, one_hot_batch, smooth_weights, tanimoto_loss
 
 
 class CombinedLoss(nn.Module):
@@ -162,3 +162,18 @@ class DualTanimotoLoss(nn.Module):
         loss = tanimoto_loss(probs_pos, onehot_pos, weights_pos, dims=dims, gamma=self.gamma)
         dual = tanimoto_loss(probs_neg, onehot_neg, weights_neg, dims=dims, gamma=self.gamma)
         return self.alpha * loss + (1 - self.alpha) * dual
+
+
+class LovaszSoftmax(nn.Module):
+    def __init__(self, classes='present', per_image=False, ignore_index=255, weight=None):
+        super(LovaszSoftmax, self).__init__()
+        self.smooth = classes
+        self.per_image = per_image
+        self.ignore_index = ignore_index
+        self.weight = weight
+
+    def forward(self, output, target):
+        logits = func.softmax(output, dim=1)
+        # weightning of the loss not implemented yet
+        loss = lovasz_softmax(logits, target, ignore=self.ignore_index)
+        return loss

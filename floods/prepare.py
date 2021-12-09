@@ -101,17 +101,33 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     # create a temporary dataset to generate a mask useful to filter all the images
     # for which the amout of segmentation is lower than a given percentage
     if(config.mask_body_ratio is not None and config.mask_body_ratio > 0):
-        complete_dataset = FloodDataset(path=data_root,
-                                        subset="train",
-                                        include_dem=config.include_dem)
+        # Train and validation are duplicated in this case because the mask needs to be 
+        # evaluated for filtering without tranformations
+        complete_train_dataset = FloodDataset(path=data_root,
+                                              subset="train",
+                                              include_dem=config.include_dem)
+        complete_val_dataset = FloodDataset(path=data_root,
+                                            subset="val",
+                                            include_dem=config.include_dem)
 
         # get and apply mask to the training set
-        imgs_mask, counts = mask_body_ratio_from_threshold(complete_dataset.label_files, config.mask_body_ratio)
-        train_dataset.add_mask(imgs_mask)
+        train_imgs_mask, train_counts = mask_body_ratio_from_threshold(complete_train_dataset.label_files, config.mask_body_ratio, "train")
+        train_dataset.add_mask(train_imgs_mask)
 
-        LOG.info(f"Number of elements kept: {counts[1]}")
-        LOG.info(f"Number of elements removed: {counts[0]}")
-        LOG.info(f"Ratio: {round(counts[1]/len(imgs_mask), 2)}")
+        LOG.info("Filtering training set with %d images", len(train_dataset))
+        LOG.info(f"Number of elements kept: {train_counts[1]}")
+        LOG.info(f"Ratio: {round(train_counts[1]/len(train_imgs_mask), 2)}")
+
+        # get and apply mask to the validation set
+        val_imgs_mask, val_counts = mask_body_ratio_from_threshold(complete_val_dataset.label_files, config.mask_body_ratio, "val")	
+        valid_dataset.add_mask(val_imgs_mask)
+
+        LOG.info("Filtering validation set with %d images", len(valid_dataset))
+        LOG.info(f"Number of elements kept: {val_counts[1]}")
+        LOG.info(f"Ratio: {round(val_counts[1]/len(val_imgs_mask), 2)}")
+
+        del complete_train_dataset
+        del complete_val_dataset
 
     return train_dataset, valid_dataset
 

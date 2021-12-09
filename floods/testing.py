@@ -45,12 +45,13 @@ def test(test_config: TestConfig):
                                      std=FloodDataset.std(),
                                      clip_max=FloodDataset.clip_max(),
                                      clip_min=FloodDataset.clip_min())
+
     LOG.debug("Eval. transforms: %s", str(test_transform))
     # create the test dataset
     test_dataset = FloodDataset(path=Path(config.data_root),
                                 subset="test",
                                 include_dem=config.include_dem,
-                                transform=test_transform)
+                                normalization=test_transform)
     test_loader = DataLoader(dataset=test_dataset,
                              batch_size=1,  # fixed at 1 because in test we have full-size images
                              shuffle=False,

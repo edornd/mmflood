@@ -118,7 +118,7 @@ def tile_body_water_ratio(image: np.ndarray) -> float:
     return u_cnt[1] / len(nan_filtered)
 
 
-def mask_body_ratio_from_threshold(gt_list: list, ratio_threshold: float) -> np.ndarray:
+def mask_body_ratio_from_threshold(gt_list: list, ratio_threshold: float, label: str) -> np.ndarray:
     """
     Returns a binary mask with the images having a body water ratio above the threshold.
     """
@@ -127,9 +127,9 @@ def mask_body_ratio_from_threshold(gt_list: list, ratio_threshold: float) -> np.
     assert len(gt_list) > 0, "No masks found in the path"
 
     # check if the mask has been cached already
-    if (glob(f'data/cache/_mask_t{str(ratio_threshold)[-2:]}.npy')):
+    if (glob(f'data/cache/_mask_{label}_t{str(ratio_threshold)[-2:]}.npy')):
 
-        mask = np.load(f'./data/cache/_mask_t{ratio_threshold}.npy')
+        mask = np.load(f'./data/cache/_mask_{label}_t{str(ratio_threshold)[-2:]}.npy')
         _, counts = np.unique(mask, return_counts=True)
 
         return mask, counts
@@ -149,6 +149,6 @@ def mask_body_ratio_from_threshold(gt_list: list, ratio_threshold: float) -> np.
     _, counts = np.unique(mask, return_counts=True)
 
     # save a cache file of the mask for future usage
-    np.save(f'./data/cache/_mask_t{str(ratio_threshold)[-2:]}.npy', mask)
+    np.save(f'./data/cache/_mask_{label}_t{str(ratio_threshold)[-2:]}.npy', mask)
 
     return mask, counts

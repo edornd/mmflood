@@ -22,6 +22,7 @@ from floods.utils.tiling.functional import mask_body_ratio_from_threshold
 LOG = get_logger(__name__)
 AVAILABLE_ARCHITECTURES = ('UNet', 'DeepLab', 'PSPDenseNet')
 
+
 def train_transforms_base(image_size: int):
     min_crop = image_size // 2
     max_crop = image_size
@@ -101,7 +102,7 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     # create a temporary dataset to generate a mask useful to filter all the images
     # for which the amout of segmentation is lower than a given percentage
     if(config.mask_body_ratio is not None and config.mask_body_ratio > 0):
-        # Train and validation are duplicated in this case because the mask needs to be 
+        # Train and validation are duplicated in this case because the mask needs to be
         # evaluated for filtering without tranformations
         complete_train_dataset = FloodDataset(path=data_root,
                                               subset="train",
@@ -119,7 +120,7 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
         LOG.info(f"Ratio: {round(train_counts[1]/len(train_imgs_mask), 2)}")
 
         # get and apply mask to the validation set
-        val_imgs_mask, val_counts = mask_body_ratio_from_threshold(complete_val_dataset.label_files, config.mask_body_ratio, "val")	
+        val_imgs_mask, val_counts = mask_body_ratio_from_threshold(complete_val_dataset.label_files, config.mask_body_ratio, "val")
         valid_dataset.add_mask(val_imgs_mask)
 
         LOG.info("Filtering validation set with %d images", len(valid_dataset))

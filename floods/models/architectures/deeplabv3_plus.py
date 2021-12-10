@@ -8,12 +8,12 @@ from torchvision import models
 
 from floods.models.architectures.base_model import BaseModel
 from floods.utils.ml import initialize_weights
-''' 
--> ResNet BackBone
-'''
 
 
 class ResNet(nn.Module):
+    '''
+    -> ResNet BackBone
+    '''
     def __init__(self, in_channels=3, output_stride=16, backbone='resnet101', pretrained=True):
         super(ResNet, self).__init__()
         model = getattr(models, backbone)(pretrained)
@@ -63,7 +63,7 @@ class ResNet(nn.Module):
         return x, low_level_features
 
 
-''' 
+'''
 -> (Aligned) Xception BackBone
 Pretrained model from https://github.com/Cadene/pretrained-models.pytorch
 by Remi Cadene
@@ -177,7 +177,7 @@ class Xception(nn.Module):
 
         # Middle Flow
         for i in range(16):
-            exec(f'self.block{i+4} = Block(728, 728, stride=1, dilation=mf_d)')
+            setattr(Block(728, 728, stride=1, dilation=mf_d), f"block{i + 4}")
 
         # Exit flow
         self.block20 = Block(728, 1024, stride=1, dilation=ef_d[0], exit_flow=True)
@@ -272,11 +272,6 @@ class Xception(nn.Module):
         return x, low_level_features
 
 
-''' 
--> The Atrous Spatial Pyramid Pooling
-'''
-
-
 def assp_branch(in_channels, out_channles, kernel_size, dilation):
     padding = 0 if kernel_size == 1 else dilation
     return nn.Sequential(
@@ -323,11 +318,6 @@ class ASSP(nn.Module):
         return x
 
 
-''' 
--> Decoder
-'''
-
-
 class Decoder(nn.Module):
     def __init__(self, low_level_channels, num_classes):
         super(Decoder, self).__init__()
@@ -356,11 +346,6 @@ class Decoder(nn.Module):
         x = F.interpolate(x, size=(H, W), mode='bilinear', align_corners=True)
         x = self.output(torch.cat((low_level_features, x), dim=1))
         return x
-
-
-'''
--> Deeplab V3 +
-'''
 
 
 class DeepLab(BaseModel):

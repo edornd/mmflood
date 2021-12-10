@@ -121,14 +121,14 @@ def set_trainable_attr(m, b):
         p.requires_grad = b
 
 
-def apply_leaf(m, f):
-    c = m if isinstance(m, (list, tuple)) else list(m.children())
-    if isinstance(m, nn.Module):
-        f(m)
-    if len(c) > 0:
-        for l in c:
-            apply_leaf(l, f)
+def apply_leaf(module, f):
+    child = module if isinstance(module, (list, tuple)) else list(module.children())
+    if isinstance(module, nn.Module):
+        f(module)
+    if len(child) > 0:
+        for layer in child:
+            apply_leaf(layer, f)
 
 
-def set_trainable(l: list, b: bool) -> None:
-    apply_leaf(l, lambda m: set_trainable_attr(m, b))
+def set_trainable(layers: list, value: bool) -> None:
+    apply_leaf(layers, lambda m: set_trainable_attr(m, value))

@@ -112,9 +112,6 @@ class PSPNet(BaseModel):
                 module.eval()
 
 
-## PSP with dense net as the backbone
-
-
 class PSPDenseNet(BaseModel):
     def __init__(self,
                  num_classes,

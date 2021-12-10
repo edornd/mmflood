@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import torch
+from accelerate import Accelerator
 from torch.utils.data import DataLoader
 
-from accelerate import Accelerator
 from floods.config import TrainConfig
 from floods.logging.tensorboard import TensorBoardLogger
 from floods.prepare import inverse_transform, prepare_datasets, prepare_metrics, prepare_model
@@ -16,6 +16,11 @@ LOG = get_logger(__name__)
 
 
 def train(config: TrainConfig):
+    # Create the directory tree:
+    # outputs
+    #  |-- exp_name
+    #      |-- models
+    #      |-- logs
     log_name = "output.log"
     exp_id, out_folder, model_folder, logs_folder = init_experiment(config=config, log_name=log_name)
     config_path = out_folder / "config.yaml"
@@ -29,27 +34,20 @@ def train(config: TrainConfig):
     # seeding everything
     LOG.info("Using seed: %d", config.seed)
     seed_everything(config.seed, deterministic=True)
-    
+
     # prepare datasets
     LOG.info("Loading datasets...")
     train_set, valid_set = prepare_datasets(config=config)
     num_classes = len(train_set.categories())
     LOG.info("Full sets - train set: %d samples, validation set: %d samples", len(train_set), len(valid_set))
-    
+
     torch.autograd.set_detect_anomaly(True)
     # assertions before starting
     assert torch.backends.cudnn.enabled, "AMP requires CUDNN backend to be enabled."
     # prepare accelerator ASAP (but not too soon, or it breaks the dataset masking)
     accelerator = Accelerator(fp16=config.trainer.amp, cpu=config.trainer.cpu)
-
-    # Create the directory tree:
-    # outputs
-    #  |-- exp_name
-    #      |-- models
-    #      |-- logs
     accelerator.wait_for_everyone()
-    
-    
+
     # construct data loaders
     train_loader = DataLoader(dataset=train_set,
                               batch_size=config.trainer.batch_size,

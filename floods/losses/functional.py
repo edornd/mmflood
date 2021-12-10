@@ -82,21 +82,21 @@ def isnan(x):
     return x != x
 
 
-def mean(l, ignore_nan=False, empty=0):
+def mean(inputs, ignore_nan=False, empty=0):
     """
     nanmean compatible with generators.
     """
-    l = iter(l)
+    inputs = iter(inputs)
     if ignore_nan:
-        l = ifilterfalse(isnan, l)
+        inputs = ifilterfalse(isnan, inputs)
     try:
         n = 1
-        acc = next(l)
+        acc = next(inputs)
     except StopIteration:
         if empty == 'raise':
             raise ValueError('Empty mean')
         return empty
-    for n, v in enumerate(l, 2):
+    for n, v in enumerate(inputs, 2):
         acc += v
     if n == 1:
         return acc
@@ -152,7 +152,7 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
     class_to_sum = list(range(C)) if classes in ['all', 'present'] else classes
     for c in class_to_sum:
         fg = (labels == c).float()  # foreground for class c
-        if (classes is 'present' and fg.sum() == 0):
+        if (classes == 'present' and fg.sum() == 0):
             continue
         if C == 1:
             if len(classes) > 1:

@@ -7,7 +7,6 @@ import torch
 from plotille import histogram
 from torch.utils.data import DataLoader
 
-from floods.config.preproc import StatsConfig
 from floods.datasets.flood import FloodDataset
 
 LOG = logging.getLogger(__name__)
@@ -71,15 +70,4 @@ def histograms_for_sanity_check(dataset_path: Path):
     plot_histogram(data[0], 'VV', LOW_FILTER[0][0], HIGH_FILTER[0][0])
     plot_histogram(data[1], 'VH', LOW_FILTER[1][0], HIGH_FILTER[1][0])
     plot_histogram(data[2], 'DEM', LOW_FILTER[2][0], HIGH_FILTER[2][0])
-    return
-
-
-def test_dataset(config: StatsConfig):
-    dataset_path = Path(config.data_root)
-    test_dataset_item(dataset_path)
-    LOG.info("Triplet of images correct - test passed")
-    histograms_for_sanity_check(dataset_path)
-    LOG.info("Histograms plotted")
-    compute_mean_std(dataset_path)
-    LOG.info("Iteration of images correct - test passed")
     return

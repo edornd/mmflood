@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import Set
+from typing import List, Set
 
 from pydantic import Field
 
@@ -25,6 +25,7 @@ class PreparationConfig(EnvConfig):
                              description="Select which subset to preprocess (requires an existing split)")
     summary_file: str = Field(description="JSON file containing all th required information on the dataset")
     tiling: bool = Field(True, description="whether to skip the tiling or not (also skips mask preprocessing)")
+    scale: List[int] = Field([1], description="Scaling multipliers for each tile (before resizing to tile_size).")
     tile_size: int = Field(512, description="base dimension of the squared tile")
     tile_max_overlap: int = Field(400, description="how much the tiles can overlap before skipping the next one")
     decibel: bool = Field(True, description="Apply a log10 transformation to the SAR signal")

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Generator, Union
+from itertools import chain
+from typing import Callable, Generator, Iterable, Union
 
 import numpy as np
 import torch
@@ -47,6 +48,21 @@ class DynamicOverlapTiler(Tiler):
                                tile_size=self.tile_size,
                                overlap_threshold=self.overlap_threshold,
                                channels_first=self.channels_first)
+
+
+class MultiScaleTiler(DynamicOverlapTiler):
+    def __init__(self, tile_size: Iterable[int], overlap_threshold: int, channels_first: bool = False) -> None:
+        assert len(tile_size) > 1, "Multi-scale tiler requires more than one size"
+        super().__init__(tile_size, overlap_threshold, channels_first=channels_first)
+
+    def __call__(self, image: np.ndarray) -> Generator[tuple, None, None]:
+        generators = [
+            tile_overlapped(image,
+                            tile_size=size,
+                            overlap_threshold=self.overlap_threshold,
+                            channels_first=self.channels_first) for size in self.tile_size
+        ]
+        return chain(generators)
 
 
 class FixedOverlaptiler(Tiler):

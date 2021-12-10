@@ -8,6 +8,7 @@ from typing import Callable, Counter, Optional, Set, Tuple, Union
 import cv2
 import numpy as np
 import rasterio
+from rasterio.enums import Resampling
 from rasterio.io import MemoryFile
 from rasterio.windows import Window
 from tqdm import tqdm
@@ -15,7 +16,7 @@ from tqdm import tqdm
 from floods.config.preproc import ImageType, PreparationConfig, StatsConfig
 from floods.utils.common import check_or_make_dir, print_config
 from floods.utils.gis import imread, mask_raster, write_window
-from floods.utils.ml import F16_EPS
+from floods.utils.ml import F16_EPS, identity
 from floods.utils.tiling import DynamicOverlapTiler, SingleImageTiler
 
 LOG = logging.getLogger(__name__)
@@ -151,44 +152,53 @@ def _process_tiff(image_id: str,
                   dst_path: Path,
                   image_type: ImageType,
                   tiling_fn: Callable,
-                  process_fn: Optional[Callable] = None) -> Tuple[int, int]:
+                  process_fn: Optional[Callable] = None,
+                  scale: float = 1.0,
+                  resampling: Resampling = Resampling.bilinear,
+                  name_suffix: str = "") -> Tuple[int, int]:
     """Main function, processes the inputs by reading them, doing some checks and additional stuff
     for masks, then tiles them ans stores the single chips.
 
     Args:
-        image_id (str): emsr-like code identifier of the tuple
-        source_path (Path): path to the image
-        dst_path (Path): path where to store the tiles
-        image_type (ImageType): sar, dem or mask
-        tiling_fn (Callable): callable for the tiling operation, yields coordinates
+        image_id (str): emsr-like code identifier of the tuple.
+        source_path (Path): path to the image.
+        dst_path (Path): path where to store the tiles.
+        image_type (ImageType): sar, dem or mask.
+        tiling_fn (Callable): callable for the tiling operation, yields coordinates.
         process_fn (Optional[Callable], optional): optional callable for mask processing. Defaults to None.
+        scale (Optional[float]): optional value to up/downscale the image before tiling.
+        resampling (Optional[Resampling]): resampling strategy, defaults to bilinear.
+        name_suffix (Optional[str]): optional suffix to add at the end of the file (useful for multi-scale).
 
     Returns:
         Tuple[int, int]: number of tiles for each axis
     """
-    suffix, _ = image_type.value
+    group, _ = image_type.value
+    process_fn = process_fn or identity
     # create destination subfolders paths (dem/sar/mask)
-    check_or_make_dir(Path(dst_path) / Path(suffix))
+    check_or_make_dir(Path(dst_path) / Path(group))
     # read image using rasterio
+    # once opened, rescale according to the factor, adjusting the transform
     with rasterio.open(str(source_path), mode="r", driver="GTiff") as dataset:
-        # first, check dimensions:
-        target = dataset
-        image = dataset.read()
-        generator = tiling_fn(image)
-        # create and open an in-memory file to store mask results
+        image = dataset.read(out_shape=(dataset.count, int(dataset.height * scale), int(dataset.width * scale)),
+                             resampling=resampling)
+        _, height, width = image.shape
+        transform = dataset.transform * dataset.transform.scale(dataset.width / width, dataset.height / height)
+        profile: dict = dataset.profile
+        profile.update(height=height, width=width)
+        # create and open an in-memory file to store results
         # during preprocessing
         with MemoryFile() as memfile:
-            with memfile.open(**dataset.profile) as processed:
-                # preprocess mask if necessary
-                if process_fn is not None:
-                    processed.write(process_fn(image))
-                    target = processed
+            with memfile.open(**profile) as processed:
+                processed.write(process_fn(image))
+                processed.transform = transform
+                generator = tiling_fn(image)
                 # store result, using target raster (which could be either)
                 for (tile_row, tile_col), coords in generator:
                     x1, y1, x2, y2 = coords
                     window = Window.from_slices(rows=(x1, x2), cols=(y1, y2))
-                    tile_path = dst_path / suffix / f"{image_id}_{tile_row}_{tile_col}.tif"
-                    write_window(window, target, path=tile_path)
+                    tile_path = dst_path / group / f"{image_id}_{tile_row}_{tile_col}{name_suffix}.tif"
+                    write_window(window, processed, path=tile_path)
         # return the total amount of tile rows and cols and a mask, if present
     return tile_row + 1, tile_col + 1
 
@@ -229,44 +239,62 @@ def preprocess_data(config: PreparationConfig):
                 tiler = DynamicOverlapTiler(tile_size=config.tile_size,
                                             overlap_threshold=config.tile_max_overlap,
                                             channels_first=True)
+                available_scales = config.scale
             else:
+                available_scales = [1]
                 tiler = SingleImageTiler(tile_size=config.tile_size, channels_first=True)
-            LOG.info(f"Tiling with {tiler.__class__.__name__}")
+            LOG.info(f"Tiling with {type(tiler).__name__}")
             morph = None if not config.morphology else MorphologyTransform(kernel_size=config.morph_kernel,
                                                                            channels_first=True)
 
-            # tile the triplets of images into NxN chips
-            for sar_path, dem_path, msk_path in tqdm(list(zip(sar_files, dem_files, msk_files))):
-                image_id = Path(sar_path).stem
-                sar_process = _decibel if config.decibel else None
-                dem_process = _minmax_dem if config.minmax_dem else None
-                dem_tiles = _process_tiff(image_id,
-                                          dem_path,
-                                          subset_dir,
-                                          image_type=ImageType.DEM,
-                                          tiling_fn=tiler,
-                                          process_fn=dem_process)
-                sar_tiles = _process_tiff(image_id,
-                                          sar_path,
-                                          subset_dir,
-                                          image_type=ImageType.SAR,
-                                          tiling_fn=tiler,
-                                          process_fn=sar_process)
-                msk_tiles = _process_tiff(image_id,
-                                          msk_path,
-                                          subset_dir,
-                                          image_type=ImageType.MASK,
-                                          tiling_fn=tiler,
-                                          process_fn=morph)
-                assert (sar_tiles == dem_tiles == msk_tiles), \
-                    f"Size mismatch for {image_id}: {sar_tiles} - {dem_tiles} - {msk_tiles}"
+            # iterate over the different required scales
+            # values are reversed: a scale factor of 2 (x2) means a tile 1024x1024
+            # this is equivalent to a tile 512x512, on the image downscaled by 1/2
+            for tile_scale in available_scales:
+                LOG.info(f"Processing raw dataset with scale: x{tile_scale}")
+                image_scale = 1.0 / tile_scale
+                name_suffix = "" if tile_scale == 1 else f"_x{tile_scale}"
+                # tile the triplets of images into NxN chips
+                for sar_path, dem_path, msk_path in tqdm(list(zip(sar_files, dem_files, msk_files))):
+                    image_id = Path(sar_path).stem
+                    sar_process = _decibel if config.decibel else None
+                    dem_process = _minmax_dem if config.minmax_dem else None
+                    dem_tiles = _process_tiff(image_id,
+                                              dem_path,
+                                              subset_dir,
+                                              image_type=ImageType.DEM,
+                                              tiling_fn=tiler,
+                                              process_fn=dem_process,
+                                              scale=image_scale,
+                                              resampling=Resampling.bilinear,
+                                              name_suffix=name_suffix)
+                    sar_tiles = _process_tiff(image_id,
+                                              sar_path,
+                                              subset_dir,
+                                              image_type=ImageType.SAR,
+                                              tiling_fn=tiler,
+                                              process_fn=sar_process,
+                                              scale=image_scale,
+                                              resampling=Resampling.bilinear,
+                                              name_suffix=name_suffix)
+                    msk_tiles = _process_tiff(image_id,
+                                              msk_path,
+                                              subset_dir,
+                                              image_type=ImageType.MASK,
+                                              tiling_fn=tiler,
+                                              process_fn=morph,
+                                              scale=image_scale,
+                                              resampling=Resampling.nearest,
+                                              name_suffix=name_suffix)
+                    assert (sar_tiles == dem_tiles == msk_tiles), \
+                        f"Size mismatch for {image_id}: {sar_tiles} - {dem_tiles} - {msk_tiles}"
 
         LOG.info("Tiling complete")
         # From here, assume tiles are done and present in dst_dir
         # continue with the preprocessing
-        tile_paths = _gather_files(sar_glob=subset_dir / "sar/*.tif",
-                                   dem_glob=subset_dir / "dem/*.tif",
-                                   mask_glob=subset_dir / "mask/*.tif",
+        tile_paths = _gather_files(sar_glob=subset_dir / "sar" / "*.tif",
+                                   dem_glob=subset_dir / "dem" / "*.tif",
+                                   mask_glob=subset_dir / "mask" / "*.tif",
                                    check_stems=False)
 
         valid, removed = 0, 0

@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 import rasterio
 from rasterio.io import DatasetReader
+from rasterio.transform import Affine
 from rasterio.windows import Window
 
 
@@ -39,9 +40,10 @@ def mask_raster(path: Path, mask: np.ndarray, mask_value: int = 0) -> None:
         dst.write(current)
 
 
-def write_window(window: Window, source: DatasetReader, path: Path) -> None:
+def write_window(window: Window, source: DatasetReader, path: Path, transform: Affine = None) -> None:
     kwargs = source.meta.copy()
-    transform = rasterio.windows.transform(window, source.transform)
+    transform = transform or source.transform
+    transform = rasterio.windows.transform(window, transform)
     kwargs.update(dict(height=window.height, width=window.width, transform=transform))
 
     with rasterio.open(str(path), "w", **kwargs) as dst:

@@ -11,10 +11,10 @@ from floods.losses.functional import lovasz_softmax, one_hot_batch, smooth_weigh
 class CombinedLoss(nn.Module):
     """Simply combines two losses into a single one, with weights.
     """
-    def __init__(self, criterion_a: Callable, criterion_b: Callable, alpha: float = 0.5):
+    def __init__(self, criterion_a: Callable, criterion_b: Callable, alpha: float = 0.5, **kwargs: dict):
         super().__init__()
-        self.criterion_a = criterion_a()
-        self.criterion_b = criterion_b()
+        self.criterion_a = criterion_a(**kwargs)
+        self.criterion_b = criterion_b(**kwargs)
         self.alpha = alpha
 
     def forward(self, preds: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:

@@ -28,9 +28,9 @@ def train_transforms_base(image_size: int):
     max_crop = image_size
     transforms = [
         alb.RandomSizedCrop(min_max_height=(min_crop, max_crop), height=image_size, width=image_size, p=0.8),
-        alb.ElasticTransform(alpha=1, sigma=30, alpha_affine=30),
         alb.Flip(p=0.5),
         alb.RandomRotate90(p=0.5),
+        alb.ElasticTransform(alpha=1, sigma=50, alpha_affine=50),
     ]
     # if input channels are 4 and mean and std are for RGB only, copy red for IR
     return alb.Compose(transforms)
@@ -38,7 +38,8 @@ def train_transforms_base(image_size: int):
 
 def train_transforms_sar():
     transforms = [
-        alb.GaussianBlur(blur_limit=(3, 11), p=0.5)
+        alb.GaussianBlur(blur_limit=(3, 13), p=0.5),
+        alb.MultiplicativeNoise(multiplier=(0.8, 1.2), elementwise=True, per_channel=True)
     ]
     return alb.Compose(transforms)
 
@@ -69,12 +70,13 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
         f"Declared channels: {required_channels}, required: {config.in_channels}"
 
     # instantiate transforms for training and evaluation
+    # adapt hardcoded tensors to the current number of channels
     data_root = Path(config.data_root)
     mean = FloodDataset.mean()[:config.in_channels]
     std = FloodDataset.std()[:config.in_channels]
-    clip_min = FloodDataset.clip_min()[:config.in_channels]
-    clip_max = FloodDataset.clip_max()[:config.in_channels]
-
+    # 3 different blocks required:
+    # - base is applied to everything (affine transforms mainly)
+    # - sar, dem are only applied to the namesake components
     base_trf = train_transforms_base(image_size=config.image_size)
     sar_trf = train_transforms_sar()
     dem_trf = train_transforms_dem(config.channel_drop)
@@ -82,8 +84,8 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     config.model.transforms = str(base_trf) + str(sar_trf) + str(dem_trf)
     normalize = eval_transforms(mean=mean,
                                 std=std,
-                                clip_min=clip_min,
-                                clip_max=clip_max,)
+                                clip_min=-30.0,
+                                clip_max=30.0,)
     # also print them, just in case
     LOG.info("Train transforms: %s", config.model.transforms)
     LOG.info("Eval. transforms: %s", str(normalize))
@@ -110,23 +112,23 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
         complete_val_dataset = FloodDataset(path=data_root,
                                             subset="val",
                                             include_dem=config.include_dem)
-
         # get and apply mask to the training set
-        train_imgs_mask, train_counts = mask_body_ratio_from_threshold(complete_train_dataset.label_files, config.mask_body_ratio, "train")
+        train_imgs_mask, train_counts = mask_body_ratio_from_threshold(labels=complete_train_dataset.label_files,
+                                                                       ratio_threshold=config.mask_body_ratio,
+                                                                       label="train")
         train_dataset.add_mask(train_imgs_mask)
-
-        LOG.info("Filtering training set with %d images", len(train_dataset))
+        LOG.info("Filtering training set with %d images", len(train_imgs_mask))
         LOG.info(f"Number of elements kept: {train_counts[1]}")
-        LOG.info(f"Ratio: {round(train_counts[1]/len(train_imgs_mask), 2)}")
-
+        LOG.info(f"Ratio: {train_counts[1]/len(train_imgs_mask):.2f}%")
         # get and apply mask to the validation set
-        val_imgs_mask, val_counts = mask_body_ratio_from_threshold(complete_val_dataset.label_files, config.mask_body_ratio, "val")
+        val_imgs_mask, val_counts = mask_body_ratio_from_threshold(labels=complete_val_dataset.label_files,
+                                                                   ratio_threshold=config.mask_body_ratio,
+                                                                   label="val")
         valid_dataset.add_mask(val_imgs_mask)
-
-        LOG.info("Filtering validation set with %d images", len(valid_dataset))
+        LOG.info("Filtering validation set with %d images", len(val_imgs_mask))
         LOG.info(f"Number of elements kept: {val_counts[1]}")
-        LOG.info(f"Ratio: {round(val_counts[1]/len(val_imgs_mask), 2)}")
-
+        LOG.info(f"Ratio: {val_counts[1]/len(val_imgs_mask):.2f}%")
+        # cleaning up
         del complete_train_dataset
         del complete_val_dataset
 

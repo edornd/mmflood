@@ -1,4 +1,4 @@
-from typing import Any, Dict, Sequence
+from typing import Sequence, Union
 
 import numpy as np
 import torch
@@ -37,15 +37,19 @@ class ClipNormalize(Normalize):
     def __init__(self,
                  mean: tuple,
                  std: tuple,
-                 clip_min: tuple,
-                 clip_max: tuple,
+                 clip_min: Union[float, tuple],
+                 clip_max: Union[float, tuple],
                  max_pixel_value: float = 1.0,
                  always_apply: bool = False,
                  p: float = 1.0):
         super().__init__(mean=mean, std=std, max_pixel_value=max_pixel_value, always_apply=always_apply, p=p)
-        self.min = clip_min
-        self.max = clip_max
+        self.clip_min = clip_min
+        self.clip_max = clip_max
 
-    def __call__(self, image, **params) -> Dict[str, Any]:
-        image = np.clip(image, self.min, self.max)
-        return super().__call__(image=image, **params)
+    def apply(self, image: np.ndarray, **params) -> np.ndarray:
+        result = super().apply(image=image, **params)
+        return np.clip(result, self.clip_min, self.clip_max)
+
+    def get_transform_init_args_names(self):
+        parent = list(super().get_transform_init_args_names())
+        return tuple(parent + ["clip_min", "clip_max"])

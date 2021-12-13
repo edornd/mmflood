@@ -43,8 +43,8 @@ def test(test_config: TestConfig):
     num_classes = len(FloodDataset.categories())
     test_transform = eval_transforms(mean=FloodDataset.mean(),
                                      std=FloodDataset.std(),
-                                     clip_max=FloodDataset.clip_max(),
-                                     clip_min=FloodDataset.clip_min())
+                                     clip_max=30,
+                                     clip_min=-30)
 
     LOG.debug("Eval. transforms: %s", str(test_transform))
     # create the test dataset

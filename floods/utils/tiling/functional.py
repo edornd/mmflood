@@ -1,5 +1,5 @@
-from glob import glob
-from typing import Generator, Union
+from pathlib import Path
+from typing import Generator, List, Union
 
 import numpy as np
 from tqdm import tqdm
@@ -118,37 +118,32 @@ def tile_body_water_ratio(image: np.ndarray) -> float:
     return u_cnt[1] / len(nan_filtered)
 
 
-def mask_body_ratio_from_threshold(gt_list: list, ratio_threshold: float, label: str) -> np.ndarray:
+def mask_body_ratio_from_threshold(labels: List[Path], ratio_threshold: float, label: str) -> np.ndarray:
     """
     Returns a binary mask with the images having a body water ratio above the threshold.
     """
-
     # for each mask in the path read the image array and get the tile body water ratio
-    assert len(gt_list) > 0, "No masks found in the path"
+    assert len(labels) > 0, "No masks found in the path"
+    target_file = Path("data") / f"mask_{label}_t{ratio_threshold:.2f}.npy"
 
-    # check if the mask has been cached already
-    if (glob(f'data/cache/_mask_{label}_t{str(ratio_threshold)[-2:]}.npy')):
-
-        mask = np.load(f'./data/cache/_mask_{label}_t{str(ratio_threshold)[-2:]}.npy')
+    # early out if the mask array has been cached already
+    if target_file.exists() and target_file.is_file():
+        mask = np.load(str(target_file))
         _, counts = np.unique(mask, return_counts=True)
-
         return mask, counts
 
     # create the list for filtering the elements, set to zero by default
-    mask = np.zeros(len(gt_list))
-
-    for i, gt in enumerate(tqdm(gt_list)):
+    mask = np.zeros(len(labels))
+    for i, label_path in enumerate(tqdm(labels)):
         # 1. read the image
         # 2. get the body water ratio
         # 3. if the ratio is above the threshold, set the mask to 1, meaning use the image
-        image = imread(gt)
+        image = imread(label_path)
         ratio = tile_body_water_ratio(image)
         if ratio >= ratio_threshold:
             mask[i] = 1
 
     _, counts = np.unique(mask, return_counts=True)
-
     # save a cache file of the mask for future usage
-    np.save(f'./data/cache/_mask_{label}_t{str(ratio_threshold)[-2:]}.npy', mask)
-
+    np.save(str(target_file), mask)
     return mask, counts

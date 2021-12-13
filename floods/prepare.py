@@ -141,8 +141,10 @@ def prepare_sampler(data_root: str, dataset: FloodDataset) -> WeightedRandomSamp
     data_name = Path(data_root).stem
     target_file = Path("data") / f"{data_name}_sample-weights.npy"
     if target_file.exists() and target_file.is_file():
+        LOG.info("Found an existing array of sample weights")
         weights = np.load(str(target_file))
     else:
+        LOG.info("Computing weights for weighted random sampling")
         weights = weights_from_body_ratio(dataset.label_files, smoothing=0.9)
         np.save(str(target_file), weights)
     # completely arbitrary, this is just here to maximize the amount of images we look at

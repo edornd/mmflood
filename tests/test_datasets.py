@@ -1,20 +1,17 @@
 import logging
-from datetime import datetime
 from pathlib import Path
 
 import numpy as np
+import seaborn as sns
 import torch
+from matplotlib import pyplot as plt
 from plotille import histogram
-from torch.utils.data import DataLoader
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 from floods.datasets.flood import FloodDataset
+from floods.utils.tiling.functional import weights_from_body_ratio
 
 LOG = logging.getLogger(__name__)
-
-# Filter values for VV, VH, DEM to calculate statistics
-# Low and high filters are the 25 and 75 percentiles for each channel
-LOW_FILTER = np.array([[0.5226023197174072], [0.11324059963226318], [1434.2500]])
-HIGH_FILTER = np.array([[1.8945084810256958], [0.4730878472328186], [1676.5000]])
 
 
 # Plot title and histogram on the console of a given array
@@ -36,38 +33,17 @@ def test_dataset_item(dataset_path: Path):
     assert mask.min() >= 0 and mask.max() <= 255
 
 
-# Compute the mean and the standard deviation of a given dataset
-def compute_mean_std(dataset_path: Path):
-
-    dataset = FloodDataset(dataset_path, subset="train", include_dem=True, transform=None)
-    loader = DataLoader(dataset, batch_size=dataset.__len__(), num_workers=4, shuffle=True)
-
-    images, labels = next(iter(loader))
-    images = np.moveaxis(images.numpy(), 1, 0)
-
-    valid = labels != 255
-    data = images[:, valid]
-    idx = (data >= LOW_FILTER) & (data <= HIGH_FILTER)
-    data[idx] = np.nan
-    with open('data/stats.txt', 'a') as file:
-        file.write(f'{str(datetime.now())}\n')
-        file.write(f'Mean: {np.nanmean(data, axis=1)}\n')
-        file.write(f'Std: {np.nanstd(data, axis=1)}\n')
-
-    return
-
-
-# Compute the mean and the standard deviation of a given dataset
-def histograms_for_sanity_check(dataset_path: Path):
-    dataset = FloodDataset(dataset_path, subset="train", include_dem=True, transform=None)
-    loader = DataLoader(dataset, batch_size=64, num_workers=4, shuffle=True)
-
-    images, labels = next(iter(loader))
-    images = np.moveaxis(images.numpy(), 1, 0)
-
-    valid = labels != 255
-    data = images[:, valid]
-    plot_histogram(data[0], 'VV', LOW_FILTER[0][0], HIGH_FILTER[0][0])
-    plot_histogram(data[1], 'VH', LOW_FILTER[1][0], HIGH_FILTER[1][0])
-    plot_histogram(data[2], 'DEM', LOW_FILTER[2][0], HIGH_FILTER[2][0])
-    return
+def test_weighted_sampler(dataset_path: Path):
+    dataset = FloodDataset(dataset_path, subset="train", include_dem=True, transform_base=None)
+    with logging_redirect_tqdm():
+        weights0 = weights_from_body_ratio(dataset.label_files, smoothing=0)
+        weights1 = weights_from_body_ratio(dataset.label_files, smoothing=0.2)
+        weights2 = weights_from_body_ratio(dataset.label_files, smoothing=0.9)
+        LOG.info("min: %.2f - max: %.2f", weights0.min(), weights0.max())
+        LOG.info("min: %.2f - max: %.2f", weights1.min(), weights1.max())
+        LOG.info("min: %.2f - max: %.2f", weights2.min(), weights2.max())
+        plt.xlim(0, 1)
+        sns.histplot(weights0, bins=100, color="r")
+        sns.histplot(weights1, bins=100, color="g")
+        sns.histplot(weights2, bins=100, color="b")
+        plt.savefig("result.png")

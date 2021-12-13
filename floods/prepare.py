@@ -2,22 +2,24 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import albumentations as alb
+import numpy as np
 import torch
 from albumentations.pytorch import ToTensorV2
 from torch import nn
+from torch.utils.data.sampler import WeightedRandomSampler
 
 import floods.models.architectures as archs
-from floods.config import TrainConfig
-from floods.config.testing import TestConfig
+from floods.config import ModelConfig, TestConfig, TrainConfig
 from floods.datasets.base import DatasetBase
 from floods.datasets.flood import FloodDataset
-from floods.metrics import ConfusionMatrix, F1Score, IoU, Metric
+from floods.metrics import ConfusionMatrix, F1Score, IoU, Metric, Precision, Recall
 from floods.models import create_decoder, create_encoder
 from floods.models.base import Segmenter
+from floods.models.encoders import MultiEncoder
 from floods.models.modules import SegmentationHead
 from floods.transforms import ClipNormalize, Denormalize
 from floods.utils.common import get_logger
-from floods.utils.tiling.functional import mask_body_ratio_from_threshold
+from floods.utils.tiling.functional import mask_body_ratio_from_threshold, weights_from_body_ratio
 
 LOG = get_logger(__name__)
 AVAILABLE_ARCHITECTURES = ('UNet', 'DeepLab', 'PSPDenseNet')
@@ -135,6 +137,40 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     return train_dataset, valid_dataset
 
 
+def prepare_sampler(data_root: str, dataset: FloodDataset) -> WeightedRandomSampler:
+    data_name = Path(data_root).stem
+    target_file = Path("data") / f"{data_name}_sample-weights.npy"
+    if target_file.exists() and target_file.is_file():
+        weights = np.load(str(target_file))
+    else:
+        weights = weights_from_body_ratio(dataset.label_files, smoothing=0.9)
+        np.save(str(target_file), weights)
+    # completely arbitrary, this is just here to maximize the amount of images we look at
+    num_samples = len(dataset) * 2
+    return WeightedRandomSampler(weights=weights, num_samples=num_samples, replacement=True)
+
+
+def create_multi_encoder(sar_name: str, dem_name: str, config: ModelConfig, **kwargs: dict) -> MultiEncoder:
+    encoder_a = create_encoder(name=sar_name,
+                               decoder=config.decoder,
+                               pretrained=config.pretrained,
+                               freeze=config.freeze,
+                               output_stride=config.output_stride,
+                               act_layer=config.act,
+                               norm_layer=config.norm,
+                               channels=3)
+    encoder_b = create_encoder(name=dem_name,
+                               decoder=config.decoder,
+                               pretrained=config.pretrained,
+                               freeze=config.freeze,
+                               output_stride=None,   # somehow, with this we obtain the same reductions of TResNet
+                               act_layer=config.act,
+                               norm_layer=config.norm,
+                               channels=1,
+                               auxiliary=sar_name)
+    return MultiEncoder(encoder_a, encoder_b, act_layer=config.act, norm_layer=config.norm, **kwargs)
+
+
 def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
     cfg = config.model
 
@@ -157,7 +193,14 @@ def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
                                  norm_layer=cfg.norm,
                                  channels=config.in_channels)
     else:
-        NotImplementedError(f"Multimodal encoders not supported: {cfg.encoder}")
+        # we only support two encoders
+        assert len(enc_names) == 2, f"Multimodal encoders not supported: {cfg.encoder}"
+        assert config.in_channels == 3, "Multimodal approach only works with 3 channels (VV, VH, DEM)"
+        LOG.info("Creating a multimodal encoder (%s, %s)", enc_names[0], enc_names[1])
+        encoder = create_multi_encoder(sar_name=enc_names[0],
+                                       dem_name=enc_names[1],
+                                       config=cfg,
+                                       return_features=False)
     # create decoder: always uses the main encoder as reference
     additional_args = dict()
     if hasattr(config.model, "dropout2d"):
@@ -194,7 +237,9 @@ def prepare_metrics(config: TrainConfig, device: torch.device, num_classes: int)
 def prepare_test_metrics(config: TestConfig, device: torch.device, num_classes: int) -> Dict[str, Metric]:
     test_metrics = {e.name: e.value(num_classes=num_classes, device=device) for e in config.test_metrics}
     # include class-wise metrics
-    test_metrics.update(dict(class_iou=IoU(num_classes=num_classes, reduction=None, device=device),
+    test_metrics.update(dict(precision=Precision(num_classes=num_classes, reduction=None, device=device),
+                             recall=Recall(num_classes=num_classes, reduction=None, device=device),
+                             class_iou=IoU(num_classes=num_classes, reduction=None, device=device),
                              class_f1=F1Score(num_classes=num_classes, reduction=None, device=device)))
     # include a confusion matrix
     test_metrics.update(dict(conf_mat=ConfusionMatrix(num_classes=num_classes, device=device)))

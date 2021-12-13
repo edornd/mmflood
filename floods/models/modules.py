@@ -119,10 +119,7 @@ class UNetDecodeBlock(nn.Module):
         """
         super().__init__()
         self.upsample = self._upsampling(in_channels, mid_channels, factor=scale_factor, bilinear=bilinear)
-        self.conv = self._upconv(mid_channels + skip_channels,
-                                 out_channels,
-                                 act_layer=act_layer,
-                                 norm_layer=norm_layer)
+        self.conv = self._upconv(mid_channels + skip_channels, out_channels, act_layer=act_layer, norm_layer=norm_layer)
         self.adapter = nn.Conv2d(mid_channels, out_channels, 1) if mid_channels != out_channels else nn.Identity()
 
     def _upsampling(self, in_channels: int, out_channels: int, factor: int, bilinear: bool = True):
@@ -200,3 +197,33 @@ class SegmentationHead(Head):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.out(x)
+
+
+class MultimodalAdapter(nn.Module):
+    """Self-Supervised Multi-Modal Adaptation block, from https://arxiv.org/abs/1808.03833
+    """
+    def __init__(self,
+                 sar_channels: int,
+                 dem_channels: int,
+                 act_layer: Type[nn.Module],
+                 norm_layer: Type[nn.Module],
+                 bottleneck_factor: int = 4):
+        super().__init__()
+        # compute input channels and bottleneck channels
+        total_chs = sar_channels + dem_channels
+        bottleneck_chs = total_chs // bottleneck_factor
+        self.bottleneck = nn.Sequential(nn.Conv2d(total_chs, bottleneck_chs, kernel_size=3, padding=1, bias=False),
+                                        norm_layer(bottleneck_chs), act_layer(),
+                                        nn.Conv2d(bottleneck_chs, total_chs, kernel_size=3, padding=1, bias=False),
+                                        norm_layer(total_chs), nn.Sigmoid())
+        # the output is given by the RGB network, which is supposed to be bigger
+        # also, this allows for easier integration with decoders
+        self.out_bn = norm_layer(total_chs)
+        self.out_conv = nn.Conv2d(total_chs, sar_channels, kernel_size=3, padding=1, bias=False)
+
+    def forward(self, sar: torch.Tensor, dem: torch.Tensor) -> torch.Tensor:
+        x1 = torch.cat((sar, dem), dim=1)
+        x = self.bottleneck(x1)
+        recalibrated = x1 * x
+        x = self.out_bn(recalibrated)
+        return self.out_conv(x)

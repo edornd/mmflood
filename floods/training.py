@@ -1,12 +1,12 @@
 from pathlib import Path
 
 import torch
-from accelerate import Accelerator
 from torch.utils.data import DataLoader
 
+from accelerate import Accelerator
 from floods.config import TrainConfig
 from floods.logging.tensorboard import TensorBoardLogger
-from floods.prepare import inverse_transform, prepare_datasets, prepare_metrics, prepare_model
+from floods.prepare import inverse_transform, prepare_datasets, prepare_metrics, prepare_model, prepare_sampler
 from floods.trainer.callbacks import Checkpoint, DisplaySamples, EarlyStopping, EarlyStoppingCriterion
 from floods.trainer.flood import FloodTrainer, PSPTrainer
 from floods.utils.common import flatten_config, get_logger, git_revision_hash, init_experiment, store_config
@@ -16,6 +16,8 @@ LOG = get_logger(__name__)
 
 
 def train(config: TrainConfig):
+    torch.autograd.set_detect_anomaly(True)
+    assert torch.backends.cudnn.enabled, "AMP requires CUDNN backend to be enabled."
     # Create the directory tree:
     # outputs
     #  |-- exp_name
@@ -41,15 +43,16 @@ def train(config: TrainConfig):
     num_classes = len(train_set.categories())
     LOG.info("Full sets - train set: %d samples, validation set: %d samples", len(train_set), len(valid_set))
 
-    torch.autograd.set_detect_anomaly(True)
-    # assertions before starting
-    assert torch.backends.cudnn.enabled, "AMP requires CUDNN backend to be enabled."
     # prepare accelerator ASAP (but not too soon, or it breaks the dataset masking)
     accelerator = Accelerator(fp16=config.trainer.amp, cpu=config.trainer.cpu)
     accelerator.wait_for_everyone()
 
-    # construct data loaders
+    # construct data loaders with samplers
+    training_sampler = None
+    if config.weighted_sampling:
+        training_sampler = prepare_sampler(data_root=config.data_root, dataset=train_set)
     train_loader = DataLoader(dataset=train_set,
+                              sampler=training_sampler,
                               batch_size=config.trainer.batch_size,
                               shuffle=True,
                               num_workers=config.trainer.num_workers,

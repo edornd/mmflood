@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Generator, List, Union
+from typing import Generator, List, Optional, Union
 
 import numpy as np
 from tqdm import tqdm
@@ -98,24 +98,25 @@ def tile_fixed_overlap(image: np.ndarray,
             yield (tile_x, tile_y), (x, x + tile_dims[0], y, y + tile_dims[1])
 
 
-def tile_body_water_ratio(image: np.ndarray) -> float:
+def tile_body_water_ratio(image: np.ndarray, label_index: int = 1, smoothing: Optional[float] = 0.0) -> float:
     """
-    Computes the body water ratio from the given image.
+    Computes the body water ratio from the given image, with a smoothing factor if required.
+    The smoothing factor should be between 0 and 1, given it multiplies the largest
     """
     assert len(image.shape) == 3, "Expected 3D image"
     assert image.shape[0] == 1, "Expected single channel image"
+    assert smoothing >= 0 and smoothing <= 1, "Smoothing factor out of range"
 
     # flat the image into 1D array, then remove nan values
     nan_filtered = image.flat
     nan_filtered = nan_filtered[~np.isnan(nan_filtered)]
-
-    # get counter of 1s
-    _, u_cnt = np.unique(nan_filtered, return_counts=True)
-    # return the ratio
-    if (len(u_cnt) != 2):  # if there is no body water, return the ratio as empty
-        return 0
-
-    return u_cnt[1] / len(nan_filtered)
+    # get the total amount of flooded pixels and divide by the total valid amount of pixels
+    _, unique_counts = np.unique(nan_filtered, return_counts=True)
+    if len(unique_counts) < 2:
+        unique_counts = (0, 0)
+    flood_pixels = unique_counts[label_index]
+    factor = smoothing * len(nan_filtered)
+    return (flood_pixels + factor) / (len(nan_filtered) + factor)
 
 
 def mask_body_ratio_from_threshold(labels: List[Path], ratio_threshold: float, label: str) -> np.ndarray:
@@ -133,17 +134,38 @@ def mask_body_ratio_from_threshold(labels: List[Path], ratio_threshold: float, l
         return mask, counts
 
     # create the list for filtering the elements, set to zero by default
-    mask = np.zeros(len(labels))
+    mask = np.zeros(len(labels), dtype=bool)
     for i, label_path in enumerate(tqdm(labels)):
         # 1. read the image
         # 2. get the body water ratio
         # 3. if the ratio is above the threshold, set the mask to 1, meaning use the image
         image = imread(label_path)
         ratio = tile_body_water_ratio(image)
-        if ratio >= ratio_threshold:
-            mask[i] = 1
+        mask[i] = ratio >= ratio_threshold
 
     _, counts = np.unique(mask, return_counts=True)
     # save a cache file of the mask for future usage
     np.save(str(target_file), mask)
     return mask, counts
+
+
+def weights_from_body_ratio(labels: List[Path], normalize: bool = True, smoothing: Optional[float] = 1.0) -> np.ndarray:
+    """Computes sample weights from the body/water ratio (direct proportionality).
+
+    Args:
+        labels (List[Path]): list of files containing the masks
+        normalize (bool, optional): whether to normalize outputs or not. Defaults to True.
+        smoothing (Optional[float], optional): A factor to smooth out probabilities. Defaults to 1.0.
+
+    Returns:
+        np.ndarray: array containing floats, one for each sample, to be used in importance sampling
+    """
+    # first compute raw flooded coverage in terms of pixels for each tile
+    # then normalize them if required
+    weights = np.zeros(len(labels), dtype=np.float32)
+    for i, label_path in enumerate(tqdm(labels)):
+        image = imread(label_path)
+        weights[i] = tile_body_water_ratio(image, smoothing=smoothing)
+    if normalize:
+        weights /= weights.max()
+    return weights

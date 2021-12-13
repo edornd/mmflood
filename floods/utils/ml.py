@@ -2,7 +2,7 @@ import random
 import sys
 from glob import glob
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Dict, Optional
 
 import numpy as np
 import torch
@@ -100,6 +100,19 @@ def load_class_weights(weights_path: Path, device: torch.device, normalize: bool
     if normalize:
         weights /= weights.max()
     return torch.from_numpy(weights).to(device)
+
+
+def compute_class_weights(data: Dict[Any, int], smoothing: float = 0.15, clip: float = 10.0):
+    assert smoothing >= 0 and smoothing <= 1, "Smoothing factor out of range"
+    if smoothing > 0:
+        # the larger the smooth factor, the bigger the quantities to sum to the remaining counts (additive smoothing)
+        smoothed_maxval = max(list(data.values())) * smoothing
+        for k in data.keys():
+            data[k] += smoothed_maxval
+    # retrieve the (new) max value, divide by counts, round to 2 digits and clip to the given value
+    # max / value allows to keep the majority class' weights to 1, while the others will be >= 1 and <= clip
+    majority = max(data.values())
+    return {k: np.clip(round(float(majority / v), ndigits=2), 0, clip) for k, v in data.items()}
 
 
 def initialize_weights(*models: nn.Sequential) -> None:

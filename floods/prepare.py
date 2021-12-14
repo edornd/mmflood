@@ -160,16 +160,15 @@ def create_multi_encoder(sar_name: str, dem_name: str, config: ModelConfig, **kw
                                output_stride=config.output_stride,
                                act_layer=config.act,
                                norm_layer=config.norm,
-                               channels=3)
+                               channels=2)
     encoder_b = create_encoder(name=dem_name,
                                decoder=config.decoder,
                                pretrained=config.pretrained,
                                freeze=config.freeze,
-                               output_stride=None,   # somehow, with this we obtain the same reductions of TResNet
+                               output_stride=config.output_stride,
                                act_layer=config.act,
                                norm_layer=config.norm,
-                               channels=1,
-                               auxiliary=sar_name)
+                               channels=1)
     return MultiEncoder(encoder_a, encoder_b, act_layer=config.act, norm_layer=config.norm, **kwargs)
 
 

@@ -1,5 +1,4 @@
-from functools import partial
-from typing import List, Type
+from typing import Type
 
 import timm
 from timm.models.features import FeatureInfo
@@ -31,24 +30,6 @@ class MultiEncoder(Encoder):
                                   dem_channels=dem_chs,
                                   act_layer=act_layer,
                                   norm_layer=norm_layer))
-
-    @classmethod
-    def create(cls, name: str, pretrained: bool, features_only: bool, out_indices: List[int], **kwargs) -> Encoder:
-        act_layer = kwargs.pop("act_layer", partial(nn.ReLU, inplace=True))
-        norm_layer = kwargs.pop("norm_layer", nn.BatchNorm2d)
-        sar_model = timm.create_model(name,
-                                      pretrained=pretrained,
-                                      features_only=features_only,
-                                      out_indices=out_indices,
-                                      in_chans=2,
-                                      **kwargs)
-        dem_model = timm.create_model(name,
-                                      pretrained=pretrained,
-                                      features_only=features_only,
-                                      out_indices=out_indices,
-                                      in_chans=1,
-                                      **kwargs)
-        return cls(encoder_sar=sar_model, encoder_dem=dem_model, act_layer=act_layer, norm_layer=norm_layer)
 
     @property
     def feature_info(self) -> FeatureInfo:

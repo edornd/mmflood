@@ -62,7 +62,10 @@ def test(test_config: TestConfig):
     config.model.pretrained = False
     model = prepare_model(config=config, num_classes=num_classes)
     # load the best checkpoint available
-    ckpt_path = find_best_checkpoint(model_folder)
+    if test_config.checkpoint_path is not None:
+        ckpt_path = Path(test_config.checkpoint_path)
+    else:
+        ckpt_path = find_best_checkpoint(model_folder)
     assert ckpt_path.exists(), f"Checkpoint '{str(ckpt_path)}' not found"
     model.load_state_dict(torch.load(str(ckpt_path), map_location="cpu"), strict=True)
     LOG.info("Model restored from: %s", str(ckpt_path))

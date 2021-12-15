@@ -47,14 +47,18 @@ def train(config: TrainConfig):
     accelerator = Accelerator(fp16=config.trainer.amp, cpu=config.trainer.cpu)
     accelerator.wait_for_everyone()
 
-    # construct data loaders with samplers
+    # construct data loaders with samplers (shuffle and sampler are mutually exclusive)
+    training_shuffle = True
     training_sampler = None
-    if config.weighted_sampling:
-        training_sampler = prepare_sampler(data_root=config.data_root, dataset=train_set)
+    if config.data.weighted_sampling:
+        training_shuffle = False
+        training_sampler = prepare_sampler(data_root=config.data.path,
+                                           dataset=train_set,
+                                           smoothing=config.data.sample_smoothing)
     train_loader = DataLoader(dataset=train_set,
                               sampler=training_sampler,
                               batch_size=config.trainer.batch_size,
-                              shuffle=True,
+                              shuffle=training_shuffle,
                               num_workers=config.trainer.num_workers,
                               worker_init_fn=seed_worker,
                               drop_last=True)
@@ -72,8 +76,8 @@ def train(config: TrainConfig):
     scheduler = config.scheduler.instantiate(optimizer)
     # prepare losses
     weights = None
-    if config.class_weights:
-        weights = load_class_weights(Path(config.class_weights), device=accelerator.device, normalize=False)
+    if config.data.class_weights:
+        weights = load_class_weights(Path(config.data.class_weights), device=accelerator.device, normalize=False)
         LOG.info("Using class weights: %s", str(weights))
     loss = config.loss.instantiate(ignore_index=255, weight=weights)
 

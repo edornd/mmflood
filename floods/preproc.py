@@ -329,9 +329,9 @@ def compute_statistics(config: StatsConfig):
     LOG.info(f"Computing dataset statistics on {config.subset} set...")
     print_config(LOG, config)
 
-    sar_paths = sorted(list(glob(str(config.data_root / config.subset / "sar" / "*.tif"))))
-    dem_paths = sorted(list(glob(str(config.data_root / config.subset / "dem" / "*.tif"))))
-    msk_paths = sorted(list(glob(str(config.data_root / config.subset / "mask" / "*.tif"))))
+    sar_paths = sorted(list(glob(str(config.data.path / config.subset / "sar" / "*.tif"))))
+    dem_paths = sorted(list(glob(str(config.data.path / config.subset / "dem" / "*.tif"))))
+    msk_paths = sorted(list(glob(str(config.data.path / config.subset / "mask" / "*.tif"))))
 
     assert len(sar_paths) > 0 and len(sar_paths) == len(dem_paths) == len(msk_paths), "Length mismatch"
 

@@ -106,6 +106,16 @@ class LossConfig(InstantiableSettings):
         return self.target(*args, **kwargs)
 
 
+class DatasetConfig(EnvConfig):
+    path: str = Field(required=True, description="Path to the dataset")
+    in_channels: int = Field(3, description="How many input channels, including extras")
+    include_dem: bool = Field(True, description="whether to include the DEM as extra input")
+    class_weights: str = Field(None, description="Optional path to a class weight array (npy format)")
+    mask_body_ratio: float = Field(None, description="Percentage of ones in the mask before discarding the tile")
+    weighted_sampling: bool = Field(False, description="Whether to sample images based on flooded ratio")
+    sample_smoothing: float = Field(0.8, description="Value between 0 and 1 to smooth out the weights (1 = maximum)")
+
+
 class ModelConfig(EnvConfig):
     encoder: str = Field("resnet34", description="Which backbone to use (see timm library)")
     decoder: str = Field("PSPDenseNet", description="Which decoder to apply")
@@ -129,16 +139,9 @@ class ModelConfig(EnvConfig):
 class TrainConfig(BaseSettings):
     seed: int = Field(1337, description="Random seed for deterministic runs")
     image_size: int = Field(512, description="Size of the input images")
-    in_channels: int = Field(3, description="How many input channels, including extras")
-    class_weights: str = Field(None, description="Optional path to a class weight array (npy format)")
-    mask_body_ratio: float = Field(None, description="Percentage of ones in the mask before discarding the tile")
-    weighted_sampling: bool = Field(False, description="Whether to sample images based on flooded ratio")
     trainer: TrainerConfig = TrainerConfig()
-    # dataset and augmentation options
-    data_root: str = Field(required=True, description="Path to the dataset")
-    include_dem: bool = Field(True, description="Whether to include the DEM as extra channel")
-    channel_drop: float = Field(0.0, description="Probability to apply channel dropout")
     # ML options
+    data: DatasetConfig = DatasetConfig()
     model: ModelConfig = ModelConfig()
     loss: LossConfig = LossConfig()
     optimizer: OptimizerConfig = OptimizerConfig()

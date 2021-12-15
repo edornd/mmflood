@@ -48,9 +48,9 @@ def test(test_config: TestConfig):
 
     LOG.debug("Eval. transforms: %s", str(test_transform))
     # create the test dataset
-    test_dataset = FloodDataset(path=Path(config.data_root),
+    test_dataset = FloodDataset(path=Path(config.data.path),
                                 subset="test",
-                                include_dem=config.include_dem,
+                                include_dem=config.data.include_dem,
                                 normalization=test_transform)
     test_loader = DataLoader(dataset=test_dataset,
                              batch_size=1,  # fixed at 1 because in test we have full-size images
@@ -72,8 +72,8 @@ def test(test_config: TestConfig):
 
     # prepare losses
     weights = None
-    if config.class_weights:
-        weights = load_class_weights(Path(config.class_weights), device=accelerator.device, normalize=False)
+    if config.data.class_weights:
+        weights = load_class_weights(Path(config.data.class_weights), device=accelerator.device, normalize=False)
         LOG.info("Using class weights: %s", str(weights))
     loss = config.loss.instantiate(ignore_index=255, weight=weights)
     # prepare metrics and logger

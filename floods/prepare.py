@@ -67,21 +67,21 @@ def inverse_transform(mean: tuple, std: tuple):
 
 def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     # a bit dirty, but at least check that in_channels allows for DEM if present
-    required_channels = 3 if config.include_dem else 2
-    assert config.in_channels == required_channels, \
-        f"Declared channels: {required_channels}, required: {config.in_channels}"
+    required_channels = 3 if config.data.include_dem else 2
+    assert config.data.in_channels == required_channels, \
+        f"Declared channels: {required_channels}, required: {config.data.in_channels}"
 
     # instantiate transforms for training and evaluation
     # adapt hardcoded tensors to the current number of channels
-    data_root = Path(config.data_root)
-    mean = FloodDataset.mean()[:config.in_channels]
-    std = FloodDataset.std()[:config.in_channels]
+    data_root = Path(config.data.path)
+    mean = FloodDataset.mean()[:config.data.in_channels]
+    std = FloodDataset.std()[:config.data.in_channels]
     # 3 different blocks required:
     # - base is applied to everything (affine transforms mainly)
     # - sar, dem are only applied to the namesake components
     base_trf = train_transforms_base(image_size=config.image_size)
     sar_trf = train_transforms_sar()
-    dem_trf = train_transforms_dem(config.channel_drop)
+    dem_trf = train_transforms_dem(channel_dropout=0)
     # store here just for config logging purposes
     config.model.transforms = str(base_trf) + str(sar_trf) + str(dem_trf)
     normalize = eval_transforms(mean=mean,
@@ -94,29 +94,29 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     # create train and validation sets
     train_dataset = FloodDataset(path=data_root,
                                  subset="train",
-                                 include_dem=config.include_dem,
+                                 include_dem=config.data.include_dem,
                                  transform_base=base_trf,
                                  transform_sar=sar_trf,
                                  transform_dem=dem_trf,
                                  normalization=normalize)
     valid_dataset = FloodDataset(path=data_root,
                                  subset="val",
-                                 include_dem=config.include_dem,
+                                 include_dem=config.data.include_dem,
                                  normalization=normalize)
     # create a temporary dataset to generate a mask useful to filter all the images
     # for which the amout of segmentation is lower than a given percentage
-    if(config.mask_body_ratio is not None and config.mask_body_ratio > 0):
+    if(config.data.mask_body_ratio is not None and config.data.mask_body_ratio > 0):
         # Train and validation are duplicated in this case because the mask needs to be
         # evaluated for filtering without tranformations
         complete_train_dataset = FloodDataset(path=data_root,
                                               subset="train",
-                                              include_dem=config.include_dem)
+                                              include_dem=config.data.include_dem)
         complete_val_dataset = FloodDataset(path=data_root,
                                             subset="val",
-                                            include_dem=config.include_dem)
+                                            include_dem=config.data.include_dem)
         # get and apply mask to the training set
         train_imgs_mask, train_counts = mask_body_ratio_from_threshold(labels=complete_train_dataset.label_files,
-                                                                       ratio_threshold=config.mask_body_ratio,
+                                                                       ratio_threshold=config.data.mask_body_ratio,
                                                                        label="train")
         train_dataset.add_mask(train_imgs_mask)
         LOG.info("Filtering training set with %d images", len(train_imgs_mask))
@@ -124,7 +124,7 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
         LOG.info(f"Ratio: {train_counts[1]/len(train_imgs_mask):.2f}%")
         # get and apply mask to the validation set
         val_imgs_mask, val_counts = mask_body_ratio_from_threshold(labels=complete_val_dataset.label_files,
-                                                                   ratio_threshold=config.mask_body_ratio,
+                                                                   ratio_threshold=config.data.mask_body_ratio,
                                                                    label="val")
         valid_dataset.add_mask(val_imgs_mask)
         LOG.info("Filtering validation set with %d images", len(val_imgs_mask))
@@ -137,15 +137,15 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     return train_dataset, valid_dataset
 
 
-def prepare_sampler(data_root: str, dataset: FloodDataset) -> WeightedRandomSampler:
+def prepare_sampler(data_root: str, dataset: FloodDataset, smoothing: float = 0.9) -> WeightedRandomSampler:
     data_name = Path(data_root).stem
-    target_file = Path("data") / f"{data_name}_sample-weights.npy"
+    target_file = Path("data") / f"{data_name}_sample-weights_smooth-{smoothing:.2f}.npy"
     if target_file.exists() and target_file.is_file():
         LOG.info("Found an existing array of sample weights")
         weights = np.load(str(target_file))
     else:
         LOG.info("Computing weights for weighted random sampling")
-        weights = weights_from_body_ratio(dataset.label_files, smoothing=0.9)
+        weights = weights_from_body_ratio(dataset.label_files, smoothing=smoothing)
         np.save(str(target_file), weights)
     # completely arbitrary, this is just here to maximize the amount of images we look at
     num_samples = len(dataset) * 2
@@ -192,11 +192,11 @@ def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
                                  output_stride=cfg.output_stride,
                                  act_layer=cfg.act,
                                  norm_layer=cfg.norm,
-                                 channels=config.in_channels)
+                                 channels=config.data.in_channels)
     else:
         # we only support two encoders
         assert len(enc_names) == 2, f"Multimodal encoders not supported: {cfg.encoder}"
-        assert config.in_channels == 3, "Multimodal approach only works with 3 channels (VV, VH, DEM)"
+        assert config.data.in_channels == 3, "Multimodal approach only works with 3 channels (VV, VH, DEM)"
         LOG.info("Creating a multimodal encoder (%s, %s)", enc_names[0], enc_names[1])
         encoder = create_multi_encoder(sar_name=enc_names[0],
                                        dem_name=enc_names[1],

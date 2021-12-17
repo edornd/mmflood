@@ -17,7 +17,7 @@ from floods.config.preproc import ImageType, PreparationConfig, StatsConfig
 from floods.utils.common import check_or_make_dir, print_config
 from floods.utils.gis import imread, mask_raster, write_window
 from floods.utils.ml import F16_EPS, identity
-from floods.utils.tiling import DynamicOverlapTiler, SingleImageTiler
+from floods.utils.tiling import DynamicOverlapTiler, SingleImageTiler, Tiler
 
 LOG = logging.getLogger(__name__)
 
@@ -138,7 +138,7 @@ def _decibel(data: np.ndarray):
     return np.log10(1 + data + F16_EPS)
 
 
-def _minmax_dem(data: np.ndarray):
+def _clip_dem(data: np.ndarray):
     """
         MinMax the DEM between -100 and 6000 meters
     """
@@ -151,10 +151,11 @@ def _process_tiff(image_id: str,
                   source_path: Path,
                   dst_path: Path,
                   image_type: ImageType,
-                  tiling_fn: Callable,
+                  tiling_fn: Tiler,
                   process_fn: Optional[Callable] = None,
                   scale: float = 1.0,
                   resampling: Resampling = Resampling.bilinear,
+                  is_context: bool = False,
                   name_suffix: str = "") -> Tuple[int, int]:
     """Main function, processes the inputs by reading them, doing some checks and additional stuff
     for masks, then tiles them ans stores the single chips.
@@ -168,6 +169,7 @@ def _process_tiff(image_id: str,
         process_fn (Optional[Callable], optional): optional callable for mask processing. Defaults to None.
         scale (Optional[float]): optional value to up/downscale the image before tiling.
         resampling (Optional[Resampling]): resampling strategy, defaults to bilinear.
+        is_context (Optional[bool]): whether the current image is a context image (should be shrinked).
         name_suffix (Optional[str]): optional suffix to add at the end of the file (useful for multi-scale).
 
     Returns:
@@ -176,13 +178,20 @@ def _process_tiff(image_id: str,
     group, _ = image_type.value
     process_fn = process_fn or identity
     # create destination subfolders paths (dem/sar/mask)
-    check_or_make_dir(Path(dst_path) / Path(group))
+    check_or_make_dir(Path(dst_path) / group)
     # read image using rasterio
     # once opened, rescale according to the factor, adjusting the transform
     with rasterio.open(str(source_path), mode="r", driver="GTiff") as dataset:
-        image = dataset.read(out_shape=(dataset.count, int(dataset.height * scale), int(dataset.width * scale)),
-                             resampling=resampling)
+        # read image with varying output shape to resize
+        # 1. if multiscale, resize proportionally
+        # 2. if context, shrink the whole image to the tile dimension
+        if is_context:
+            out_shape = (dataset.count, tiling_fn.tile_size, tiling_fn.tile_size)
+        else:
+            out_shape = (dataset.count, int(dataset.height * scale), int(dataset.width * scale))
+        image = dataset.read(out_shape=out_shape, resampling=resampling)
         _, height, width = image.shape
+        # given the possible resize, both transform and dimensions need to be updated
         transform = dataset.transform * dataset.transform.scale(dataset.width / width, dataset.height / height)
         profile: dict = dataset.profile
         profile.update(height=height, width=width)
@@ -197,7 +206,10 @@ def _process_tiff(image_id: str,
                 for (tile_row, tile_col), coords in generator:
                     x1, y1, x2, y2 = coords
                     window = Window.from_slices(rows=(x1, x2), cols=(y1, y2))
-                    tile_path = dst_path / group / f"{image_id}_{tile_row}_{tile_col}{name_suffix}.tif"
+                    if is_context:
+                        tile_path = dst_path / group / f"{image_id}{name_suffix}.tif"
+                    else:
+                        tile_path = dst_path / group / f"{image_id}_{x1}_{y1}{name_suffix}.tif"
                     write_window(window, processed, path=tile_path)
         # return the total amount of tile rows and cols and a mask, if present
     return tile_row + 1, tile_col + 1
@@ -219,7 +231,6 @@ def preprocess_data(config: PreparationConfig):
     LOG.info(f"EMSR activations: {dict(Counter(code2subset.values()))}")
 
     for subset in config.subset:
-
         emsr_codes = {k for k, v in code2subset.items() if v == subset}
         subset_dir = check_or_make_dir(dst_dir / subset)
         is_test_set = subset == "test"
@@ -240,13 +251,17 @@ def preprocess_data(config: PreparationConfig):
                                             overlap_threshold=config.tile_max_overlap,
                                             channels_first=True)
                 available_scales = config.scale
+                make_context = config.make_context
             else:
+                make_context = False
                 available_scales = [1]
                 tiler = SingleImageTiler(tile_size=config.tile_size, channels_first=True)
             LOG.info(f"Tiling with {type(tiler).__name__}")
+            # prepare preprocessing functions
+            sar_process = _decibel if config.decibel else None
+            dem_process = _clip_dem if config.clip_dem else None
             morph = None if not config.morphology else MorphologyTransform(kernel_size=config.morph_kernel,
                                                                            channels_first=True)
-
             # iterate over the different required scales
             # values are reversed: a scale factor of 2 (x2) means a tile 1024x1024
             # this is equivalent to a tile 512x512, on the image downscaled by 1/2
@@ -257,8 +272,6 @@ def preprocess_data(config: PreparationConfig):
                 # tile the triplets of images into NxN chips
                 for sar_path, dem_path, msk_path in tqdm(list(zip(sar_files, dem_files, msk_files))):
                     image_id = Path(sar_path).stem
-                    sar_process = _decibel if config.decibel else None
-                    dem_process = _minmax_dem if config.minmax_dem else None
                     dem_tiles = _process_tiff(image_id,
                                               dem_path,
                                               subset_dir,
@@ -287,7 +300,39 @@ def preprocess_data(config: PreparationConfig):
                                               resampling=Resampling.nearest,
                                               name_suffix=name_suffix)
                     assert (sar_tiles == dem_tiles == msk_tiles), \
-                        f"Size mismatch for {image_id}: {sar_tiles} - {dem_tiles} - {msk_tiles}"
+                        f"Tile mismatch for {image_id}: {sar_tiles} - {dem_tiles} - {msk_tiles}"
+                    # last generate context (global) images, only when the scale is 1 to avoid repeating it
+                    if make_context and tile_scale == 1:
+                        _process_tiff(image_id,
+                                      dem_path,
+                                      subset_dir,
+                                      image_type=ImageType.DEM,
+                                      tiling_fn=tiler,
+                                      process_fn=dem_process,
+                                      scale=1,
+                                      resampling=Resampling.bilinear,
+                                      is_context=True,
+                                      name_suffix="_full")
+                        _process_tiff(image_id,
+                                      sar_path,
+                                      subset_dir,
+                                      image_type=ImageType.SAR,
+                                      tiling_fn=tiler,
+                                      process_fn=sar_process,
+                                      scale=1,
+                                      resampling=Resampling.bilinear,
+                                      is_context=True,
+                                      name_suffix="_full")
+                        _process_tiff(image_id,
+                                      msk_path,
+                                      subset_dir,
+                                      image_type=ImageType.MASK,
+                                      tiling_fn=tiler,
+                                      process_fn=morph,
+                                      scale=1,
+                                      resampling=Resampling.nearest,
+                                      is_context=True,
+                                      name_suffix="_full")
 
         LOG.info("Tiling complete")
         # From here, assume tiles are done and present in dst_dir
@@ -302,11 +347,12 @@ def preprocess_data(config: PreparationConfig):
 
         for sar_path, dem_path, msk_path in tqdm(list(zip(*tile_paths))):
             image = imread(sar_path)
+            is_context = Path(sar_path).stem.endswith("_full")
             # remove mostly nan images, using the configured percentage (excluding test images)
             # tile files are directly deleted, careful about this
             nan_mask = np.isnan(image.sum(axis=0))
             empty_pixels = np.count_nonzero(nan_mask)
-            if not is_test_set and (empty_pixels / float(tile_area)) >= config.nan_threshold:
+            if not (is_test_set or is_context) and (empty_pixels / float(tile_area)) >= config.nan_threshold:
                 _delete_group(sar_path, dem_path, msk_path)
                 removed += 1
             # otherwise update nans into an actual ignore index
@@ -348,7 +394,7 @@ def compute_statistics(config: StatsConfig):
 
         # read images
         sar = _decibel(imread(sar_path, channels_first=False))
-        dem = _minmax_dem(imread(dem_path, channels_first=False))
+        dem = _clip_dem(imread(dem_path, channels_first=False))
         mask = imread(mask_path, channels_first=False)
         mask = mask.reshape(_dims(mask))
         assert _dims(sar) == _dims(dem) == _dims(mask), f"Shape mismatch for {image_id}"
@@ -376,7 +422,7 @@ def compute_statistics(config: StatsConfig):
     for sar_path, dem_path in tqdm(list(zip(sar_paths, dem_paths))):
         # read images
         sar = _decibel(imread(sar_path, channels_first=False))
-        dem = _minmax_dem(imread(dem_path, channels_first=False))
+        dem = _clip_dem(imread(dem_path, channels_first=False))
         mask = imread(mask_path, channels_first=False)
         mask = mask.reshape(_dims(mask))
         assert _dims(sar) == _dims(dem) == _dims(mask), f"Shape mismatch for {image_id}"

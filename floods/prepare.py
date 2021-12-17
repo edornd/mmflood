@@ -33,6 +33,7 @@ def train_transforms_base(image_size: int):
         alb.Flip(p=0.5),
         alb.RandomRotate90(p=0.5),
         alb.ElasticTransform(alpha=1, sigma=50, alpha_affine=50),
+        alb.GridDistortion(p=0.5)
     ]
     # if input channels are 4 and mean and std are for RGB only, copy red for IR
     return alb.Compose(transforms)
@@ -40,8 +41,10 @@ def train_transforms_base(image_size: int):
 
 def train_transforms_sar():
     transforms = [
-        alb.GaussianBlur(blur_limit=(3, 13), p=0.5),
-        alb.MultiplicativeNoise(multiplier=(0.8, 1.2), elementwise=True, per_channel=True)
+        alb.OneOf([
+            alb.GaussianBlur(blur_limit=(3, 13), p=0.5),
+            alb.MultiplicativeNoise(multiplier=(0.7, 1.3), elementwise=True, per_channel=True, p=0.5),
+        ], p=0.6)
     ]
     return alb.Compose(transforms)
 

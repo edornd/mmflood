@@ -52,7 +52,7 @@ def write_window(window: Window, source: DatasetReader, path: Path, transform: A
 
 def rgb_ratio(sar_image: np.ndarray,
               channels_first: bool = False,
-              weights: tuple = (1.0, 1.0, 0.2),
+              weights: tuple = (2.0, 5.0, 0.1),
               scale: float = 255,
               dtype: np.dtype = np.uint8) -> np.ndarray:
     assert sar_image.ndim == 3, "batch not supported"

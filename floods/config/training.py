@@ -9,6 +9,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, ExponentialLR, ReduceLRO
 from floods.config.base import CallableEnum, EnvConfig, Initializer, InstantiableSettings
 from floods.losses import CombinedLoss, DualTanimotoLoss, FocalLoss, FocalTverskyLoss, LovaszSoftmax, TanimotoLoss
 from floods.metrics import F1Score, IoU, Precision, Recall
+from floods.utils.schedulers import PolynomialLRDecay
 
 
 class Optimizers(CallableEnum):
@@ -21,6 +22,7 @@ class Schedulers(CallableEnum):
     plateau = Initializer(ReduceLROnPlateau)
     exp = Initializer(ExponentialLR, gamma=0.96)
     cosine = Initializer(CosineAnnealingLR, T_max=10)
+    poly = Initializer(PolynomialLRDecay, max_decay_steps=99, end_learning_rate=0.0001, power=3.0)
 
 
 class Losses(CallableEnum):

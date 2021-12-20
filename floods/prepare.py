@@ -9,13 +9,12 @@ from torch import nn
 from torch.utils.data.sampler import WeightedRandomSampler
 
 import floods.models.architectures as archs
-from floods.config import ModelConfig, TestConfig, TrainConfig
+from floods.config import TestConfig, TrainConfig
 from floods.datasets.base import DatasetBase
 from floods.datasets.flood import FloodDataset
 from floods.metrics import ConfusionMatrix, F1Score, IoU, Metric, Precision, Recall
-from floods.models import create_decoder, create_encoder
+from floods.models import create_decoder, create_encoder, create_multi_encoder
 from floods.models.base import Segmenter
-from floods.models.encoders import MultiEncoder
 from floods.models.modules import SegmentationHead
 from floods.transforms import ClipNormalize, Denormalize
 from floods.utils.common import get_logger
@@ -109,16 +108,9 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     # create a temporary dataset to generate a mask useful to filter all the images
     # for which the amout of segmentation is lower than a given percentage
     if(config.data.mask_body_ratio is not None and config.data.mask_body_ratio > 0):
-        # Train and validation are duplicated in this case because the mask needs to be
-        # evaluated for filtering without tranformations
-        complete_train_dataset = FloodDataset(path=data_root,
-                                              subset="train",
-                                              include_dem=config.data.include_dem)
-        complete_val_dataset = FloodDataset(path=data_root,
-                                            subset="val",
-                                            include_dem=config.data.include_dem)
         # get and apply mask to the training set
-        train_imgs_mask, train_counts = mask_body_ratio_from_threshold(labels=complete_train_dataset.label_files,
+        # we are directly iterating filenames to avoid transforms
+        train_imgs_mask, train_counts = mask_body_ratio_from_threshold(labels=train_dataset.label_files,
                                                                        ratio_threshold=config.data.mask_body_ratio,
                                                                        label="train")
         train_dataset.add_mask(train_imgs_mask)
@@ -126,16 +118,13 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
         LOG.info(f"Number of elements kept: {train_counts[1]}")
         LOG.info(f"Ratio: {train_counts[1]/len(train_imgs_mask):.2f}%")
         # get and apply mask to the validation set
-        val_imgs_mask, val_counts = mask_body_ratio_from_threshold(labels=complete_val_dataset.label_files,
+        val_imgs_mask, val_counts = mask_body_ratio_from_threshold(labels=valid_dataset.label_files,
                                                                    ratio_threshold=config.data.mask_body_ratio,
                                                                    label="val")
         valid_dataset.add_mask(val_imgs_mask)
         LOG.info("Filtering validation set with %d images", len(val_imgs_mask))
         LOG.info(f"Number of elements kept: {val_counts[1]}")
         LOG.info(f"Ratio: {val_counts[1]/len(val_imgs_mask):.2f}%")
-        # cleaning up
-        del complete_train_dataset
-        del complete_val_dataset
 
     return train_dataset, valid_dataset
 
@@ -153,26 +142,6 @@ def prepare_sampler(data_root: str, dataset: FloodDataset, smoothing: float = 0.
     # completely arbitrary, this is just here to maximize the amount of images we look at
     num_samples = len(dataset) * 2
     return WeightedRandomSampler(weights=weights, num_samples=num_samples, replacement=True)
-
-
-def create_multi_encoder(sar_name: str, dem_name: str, config: ModelConfig, **kwargs: dict) -> MultiEncoder:
-    encoder_a = create_encoder(name=sar_name,
-                               decoder=config.decoder,
-                               pretrained=config.pretrained,
-                               freeze=config.freeze,
-                               output_stride=config.output_stride,
-                               act_layer=config.act,
-                               norm_layer=config.norm,
-                               channels=2)
-    encoder_b = create_encoder(name=dem_name,
-                               decoder=config.decoder,
-                               pretrained=config.pretrained,
-                               freeze=config.freeze,
-                               output_stride=config.output_stride,
-                               act_layer=config.act,
-                               norm_layer=config.norm,
-                               channels=1)
-    return MultiEncoder(encoder_a, encoder_b, act_layer=config.act, norm_layer=config.norm, **kwargs)
 
 
 def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
@@ -211,6 +180,7 @@ def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
         LOG.info("Adding 2D dropout to the decoder's head: %s", str(config.model.dropout2d))
         additional_args.update(drop_channels=config.model.dropout2d)
     decoder = create_decoder(name=cfg.decoder,
+                             input_size=config.image_size,
                              feature_info=encoder.feature_info,
                              act_layer=cfg.act,
                              norm_layer=cfg.norm,
@@ -220,7 +190,7 @@ def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
     extract_features = False
     LOG.info("Returning intermediate features: %s", str(extract_features))
     # create final segmentation head and build model
-    head = SegmentationHead(in_channels=decoder.output(), num_classes=num_classes)
+    head = SegmentationHead(in_channels=decoder.out_channels(), num_classes=num_classes)
     model = Segmenter(encoder, decoder, head, return_features=extract_features)
     return model
 

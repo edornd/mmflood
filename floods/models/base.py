@@ -1,5 +1,5 @@
 from abc import abstractclassmethod, abstractmethod
-from typing import List, Tuple
+from typing import List, Tuple, Type
 
 import torch
 from timm.models.features import FeatureInfo
@@ -14,16 +14,21 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
+    @abstractmethod
+    def __init__(self, input_size: int, feature_channels: List[int], feature_reductions: List[int],
+                 act_layer: Type[nn.Module], norm_layer: Type[nn.Module]):
+        super().__init__()
+
     @abstractclassmethod
     def required_indices(cls, encoder: str) -> List[int]:
         ...
 
-    # @abstractmethod
-    # def output_channels(self) -> List[int]:
-    #     ...
+    @abstractmethod
+    def out_channels(self) -> int:
+        ...
 
     @abstractmethod
-    def output(self) -> int:
+    def out_reduction(self) -> int:
         ...
 
 
@@ -43,17 +48,28 @@ class Segmenter(nn.Module):
         self.head = head
         self.return_features = return_features
 
-    def forward_features(self, inputs: torch.Tensor) -> Tuple[torch.Tensor, ...]:
-        encoder_out = self.encoder(inputs)
-        decoder_out = self.decoder(encoder_out)
-        head_out = self.head(decoder_out)
-        return head_out, decoder_out
-
-    def forward(self, inputs: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
-        out, features = self.forward_features(inputs)
-        features = features if self.return_features else None
-        return out, features
+    def forward(self, x: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
+        x = self.encoder(x)
+        features = self.decoder(x)
+        out = self.head(features)
+        return (out, features) if self.return_features else out
 
     def freeze(self):
         for param in self.parameters():
             param.requires_grad = False
+
+
+class MultiBranchSegmenter(Segmenter):
+    def __init__(self, encoder: Encoder, decoder: Decoder, head: Head, auxiliary: Head, return_features: bool = False):
+        super().__init__(encoder, decoder, head, return_features=return_features)
+        self.auxiliary = auxiliary
+
+    def forward(self, x: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
+        x = self.encoder(x)
+        features = self.decoder(x)
+        aux = self.auxiliary(x)
+        out = self.head(features)
+        if self.return_features:
+            return (out, aux), features
+        else:
+            return out, aux

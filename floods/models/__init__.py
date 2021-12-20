@@ -4,9 +4,10 @@ import timm
 from timm.models.features import FeatureInfo
 from torch import nn
 
+from floods.config import ModelConfig
 from floods.models.base import Decoder, Encoder
 from floods.models.decoders import available_decoders
-from floods.models.encoders import available_encoders
+from floods.models.encoders import MultiEncoder, available_encoders
 
 
 def filter_encoder_args(encoder: str, pretrained: bool, **kwargs: dict) -> dict:
@@ -57,15 +58,36 @@ def create_encoder(name: str,
     return model
 
 
-def create_decoder(name: str, feature_info: FeatureInfo, act_layer: Type[nn.Module], norm_layer: Type[nn.Module],
-                   **kwargs: dict) -> Decoder:
+def create_decoder(name: str, input_size: int, feature_info: FeatureInfo, act_layer: Type[nn.Module],
+                   norm_layer: Type[nn.Module], **kwargs: dict) -> Decoder:
     # sanity check to keep going with no worries
     assert name in available_decoders, f"Decoder '{name}' not implemented"
     # retrieve the partial object and instantiate with the common params
     decoder_class = available_decoders.get(name)
-    decoder = decoder_class(feature_channels=feature_info.channels(),
+    decoder = decoder_class(input_size=input_size,
+                            feature_channels=feature_info.channels(),
                             feature_reductions=feature_info.reduction(),
                             act_layer=act_layer,
                             norm_layer=norm_layer,
                             **kwargs)
     return decoder
+
+
+def create_multi_encoder(sar_name: str, dem_name: str, config: ModelConfig, **kwargs: dict) -> MultiEncoder:
+    encoder_a = create_encoder(name=sar_name,
+                               decoder=config.decoder,
+                               pretrained=config.pretrained,
+                               freeze=config.freeze,
+                               output_stride=config.output_stride,
+                               act_layer=config.act,
+                               norm_layer=config.norm,
+                               channels=2)
+    encoder_b = create_encoder(name=dem_name,
+                               decoder=config.decoder,
+                               pretrained=config.pretrained,
+                               freeze=config.freeze,
+                               output_stride=config.output_stride,
+                               act_layer=config.act,
+                               norm_layer=config.norm,
+                               channels=1)
+    return MultiEncoder(encoder_a, encoder_b, act_layer=config.act, norm_layer=config.norm, **kwargs)

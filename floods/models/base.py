@@ -65,9 +65,9 @@ class MultiBranchSegmenter(Segmenter):
         self.auxiliary = auxiliary
 
     def forward(self, x: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
-        x = self.encoder(x)
+        x: Tuple[torch.Tensor] = self.encoder(x)
         features = self.decoder(x)
-        aux = self.auxiliary(x)
+        aux = self.auxiliary(x[-1])
         out = self.head(features)
         if self.return_features:
             return (out, aux), features

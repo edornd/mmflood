@@ -8,7 +8,6 @@ from albumentations.pytorch import ToTensorV2
 from torch import nn
 from torch.utils.data.sampler import WeightedRandomSampler
 
-import floods.models.architectures as archs
 from floods.config import TestConfig, TrainConfig
 from floods.datasets.base import DatasetBase
 from floods.datasets.flood import FloodDataset
@@ -21,7 +20,6 @@ from floods.utils.common import get_logger
 from floods.utils.tiling.functional import mask_body_ratio_from_threshold, weights_from_body_ratio
 
 LOG = get_logger(__name__)
-AVAILABLE_ARCHITECTURES = ('UNet', 'DeepLab', 'PSPDenseNet')
 
 
 def train_transforms_base(image_size: int):
@@ -147,11 +145,6 @@ def prepare_sampler(data_root: str, dataset: FloodDataset, smoothing: float = 0.
 def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
     cfg = config.model
 
-    # if the model is in one of the already hard-coded architectures, use it
-    if cfg.decoder in AVAILABLE_ARCHITECTURES:
-        LOG.info("Using %s architecture", cfg.decoder)
-        return getattr(archs, cfg.decoder)(num_classes)
-
     # instead of creating a new var, encoder is exploited for different purposes
     # we expect a single encoder name, or a comma-separated list of names, one for each modality
     # e.g. valid examples: 'tresnet_m' - 'resnet34,resnet34'
@@ -176,9 +169,11 @@ def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
                                        return_features=False)
     # create decoder: always uses the main encoder as reference
     additional_args = dict()
-    if hasattr(config.model, "dropout2d"):
-        LOG.info("Adding 2D dropout to the decoder's head: %s", str(config.model.dropout2d))
-        additional_args.update(drop_channels=config.model.dropout2d)
+
+    # Additional dropout executed by channel, not implemented in all decoders, so commented for now
+    # if hasattr(config.model, "dropout2d"):
+    #     LOG.info("Adding 2D dropout to the decoder's head: %s", str(config.model.dropout2d))
+    #     additional_args.update(drop_channels=config.model.dropout2d)
     decoder = create_decoder(name=cfg.decoder,
                              input_size=config.image_size,
                              feature_info=encoder.feature_info,
@@ -190,7 +185,7 @@ def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
     extract_features = False
     LOG.info("Returning intermediate features: %s", str(extract_features))
     # create final segmentation head and build model
-    head = SegmentationHead(in_channels=decoder.out_channels(), num_classes=num_classes)
+    head = SegmentationHead(in_channels=decoder.out_channels(), num_classes=num_classes, upscale=decoder.out_reduction())
     model = Segmenter(encoder, decoder, head, return_features=extract_features)
     return model
 

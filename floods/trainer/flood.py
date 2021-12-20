@@ -48,7 +48,7 @@ class FloodTrainer(Trainer):
 
         # forward and loss on segmentation task
         with self.accelerator.autocast():
-            out, _ = self.model(x)
+            out = self.model(x)
             loss = self.criterion(out, y.long())
 
         # gather and update metrics
@@ -66,7 +66,7 @@ class FloodTrainer(Trainer):
         x, y = batch
         # forward and loss on main task, using AMP
         with self.accelerator.autocast():
-            out, _ = self.model(x)
+            out = self.model(x)
             loss = self.criterion(out, y.long())
         # gather stuff from DDP
         y_true = self.accelerator.gather(y)

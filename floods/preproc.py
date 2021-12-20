@@ -177,14 +177,18 @@ def _process_tiff(image_id: str,
     """
     group, _ = image_type.value
     process_fn = process_fn or identity
-    # create destination subfolders paths (dem/sar/mask)
-    check_or_make_dir(Path(dst_path) / group)
+    # create destination subfolders paths (dem/sar/mask) and additional context folder if necessary
+    ctx_dir = "context" if is_context else ""
+    root_dir = Path(dst_path) / group / ctx_dir
+    check_or_make_dir(root_dir)
     # read image using rasterio
     # once opened, rescale according to the factor, adjusting the transform
     with rasterio.open(str(source_path), mode="r", driver="GTiff") as dataset:
         # read image with varying output shape to resize
         # 1. if multiscale, resize proportionally
         # 2. if context, shrink the whole image to the tile dimension
+        orig_height = dataset.height
+        orig_width = dataset.width
         if is_context:
             out_shape = (dataset.count, tiling_fn.tile_size, tiling_fn.tile_size)
         else:
@@ -207,11 +211,11 @@ def _process_tiff(image_id: str,
                     x1, y1, x2, y2 = coords
                     window = Window.from_slices(rows=(x1, x2), cols=(y1, y2))
                     if is_context:
-                        tile_path = dst_path / group / f"{image_id}{name_suffix}.tif"
+                        tile_path = root_dir / f"{image_id}_{orig_height}_{orig_width}{name_suffix}.tif"
                     else:
-                        tile_path = dst_path / group / f"{image_id}_{x1}_{y1}{name_suffix}.tif"
+                        tile_path = root_dir / f"{image_id}_{x1}_{y1}{name_suffix}.tif"
                     write_window(window, processed, path=tile_path)
-        # return the total amount of tile rows and cols and a mask, if present
+    # return the total amount of tile rows and cols and a mask, if present
     return tile_row + 1, tile_col + 1
 
 
@@ -253,7 +257,6 @@ def preprocess_data(config: PreparationConfig):
                 available_scales = config.scale
                 make_context = config.make_context
             else:
-                make_context = False
                 available_scales = [1]
                 tiler = SingleImageTiler(tile_size=config.tile_size, channels_first=True)
             LOG.info(f"Tiling with {type(tiler).__name__}")
@@ -311,8 +314,7 @@ def preprocess_data(config: PreparationConfig):
                                       process_fn=dem_process,
                                       scale=1,
                                       resampling=Resampling.bilinear,
-                                      is_context=True,
-                                      name_suffix="_full")
+                                      is_context=True)
                         _process_tiff(image_id,
                                       sar_path,
                                       subset_dir,
@@ -321,8 +323,7 @@ def preprocess_data(config: PreparationConfig):
                                       process_fn=sar_process,
                                       scale=1,
                                       resampling=Resampling.bilinear,
-                                      is_context=True,
-                                      name_suffix="_full")
+                                      is_context=True)
                         _process_tiff(image_id,
                                       msk_path,
                                       subset_dir,
@@ -331,8 +332,7 @@ def preprocess_data(config: PreparationConfig):
                                       process_fn=morph,
                                       scale=1,
                                       resampling=Resampling.nearest,
-                                      is_context=True,
-                                      name_suffix="_full")
+                                      is_context=True)
 
         LOG.info("Tiling complete")
         # From here, assume tiles are done and present in dst_dir

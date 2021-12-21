@@ -13,7 +13,7 @@ from floods.datasets.base import DatasetBase
 from floods.datasets.flood import FloodDataset
 from floods.metrics import ConfusionMatrix, F1Score, IoU, Metric, Precision, Recall
 from floods.models import create_decoder, create_encoder, create_multi_encoder
-from floods.models.base import Segmenter
+from floods.models.base import MultiBranchSegmenter, Segmenter
 from floods.models.modules import SegmentationHead
 from floods.transforms import ClipNormalize, Denormalize
 from floods.utils.common import get_logger
@@ -188,8 +188,12 @@ def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
     head = SegmentationHead(in_channels=decoder.out_channels(),
                             num_classes=num_classes,
                             upscale=decoder.out_reduction())
-    model = Segmenter(encoder, decoder, head, return_features=extract_features)
-    return model
+    if cfg.multibranch:
+        auxiliary = SegmentationHead(in_channels=encoder.feature_info.channels()[-1],
+                                     num_classes=num_classes,
+                                     upscale=encoder.feature_info.reduction()[-1])
+        return MultiBranchSegmenter(encoder, decoder, head, auxiliary=auxiliary, return_features=extract_features)
+    return Segmenter(encoder, decoder, head, return_features=extract_features)
 
 
 def prepare_metrics(config: TrainConfig, device: torch.device, num_classes: int) -> Tuple[dict, dict]:

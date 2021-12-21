@@ -114,7 +114,7 @@ class FloodTrainer(Trainer):
         return loss, {}
 
 
-class PSPTrainer(FloodTrainer):
+class MultiBranchTrainer(FloodTrainer):
     def train_batch(self, batch: Any) -> torch.Tensor:
         # init losses and retrieve x, y
         x, y = batch
@@ -126,7 +126,6 @@ class PSPTrainer(FloodTrainer):
             loss += self.criterion(aux, y.long()) * 0.4
 
         # gather and update metrics
-        # we group only the 'standard' images, not the rotated ones
         y_true = self.accelerator.gather(y)
         y_pred = self.accelerator.gather(out)
         self._update_metrics(y_true=y_true, y_pred=y_pred, stage=TrainerStage.train)

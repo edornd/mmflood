@@ -185,7 +185,7 @@ def entropy_weights(labels: List[Path], smoothing: float = 0.8) -> np.ndarray:
     assert smoothing <= 1, "Smooth factor must be between 0 and 1"
     minval = 1.0 - smoothing
     entropies = list()
-    for label_path in enumerate(tqdm(labels)):
+    for label_path in tqdm(labels):
         label = imread(label_path)
         entropies.append(entropy(label))
 

@@ -8,12 +8,15 @@ from typing import Callable, Counter, Optional, Set, Tuple, Union
 import cv2
 import numpy as np
 import rasterio
+from joblib import Parallel, delayed
 from rasterio.enums import Resampling
 from rasterio.io import MemoryFile
 from rasterio.windows import Window
+from skimage.restoration import denoise_nl_means
 from tqdm import tqdm
 
 from floods.config.preproc import ImageType, PreparationConfig, StatsConfig
+from floods.datasets.flood import FloodDataset
 from floods.utils.common import check_or_make_dir, print_config
 from floods.utils.gis import imread, mask_raster, write_window
 from floods.utils.ml import F16_EPS, identity
@@ -26,11 +29,11 @@ class MorphologyTransform:
     """Callable operator that applies morphological transforms to the masks.
     """
     def __init__(self, kernel_size: int = 5, channels_first: bool = True) -> None:
-        self.kernel = self._create_round_kernel(kernel_size=kernel_size)
+        self.kernel = self.create_round_kernel(kernel_size=kernel_size)
         self.channels_first = channels_first
 
-    def _create_round_kernel(self, kernel_size: int):
-        # ocmpute center and radius, suppose symmetrical and centered
+    def create_round_kernel(self, kernel_size: int):
+        # compute center and radius, suppose symmetrical and centered
         center = kernel_size // 2
         radius = min(center, kernel_size - center)
         # compute a distance grid from the given center
@@ -445,3 +448,49 @@ def compute_statistics(config: StatsConfig):
     print("channel-wise std: ", ch_std)
     print("normalized avg: ", (ch_avg - ch_min) / (ch_max - ch_min))
     print("normalized std: ", ch_std / (ch_max - ch_min))
+
+
+def generate_pseudolabels(config: PreparationConfig):
+    LOG.info("Generating weight pseudolabels...")
+    data_path = Path(config.data_processed)
+    assert data_path.exists() and data_path.is_dir(), "The given path is not a valid directory"
+
+    # this is just needed for the training set
+    dataset = FloodDataset(path=data_path,
+                           subset="train",
+                           include_dem=False,
+                           transform_base=None)
+    # prepare directory to store resulting images
+    result_path = data_path / "train" / "weight"
+    check_or_make_dir(result_path)
+    morph_kernel = MorphologyTransform().create_round_kernel(kernel_size=config.morph_kernel)
+
+    # we could iterate the dataset normally, but we also need the filename to store results
+    # if we iterate in series, it takes forever to process with NL means and morphology
+    def process_image(index: int):
+        image = imread(dataset.image_files[index], channels_first=False)
+        label, profile = imread(dataset.label_files[index], return_metadata=True)
+        label = label.squeeze(0).astype(np.uint8)
+        # multiply VV and VH for fixed constants, more practical for thresholding
+        image[:, :, 0] *= config.vv_multiplier
+        image[:, :, 1] *= config.vh_multiplier
+        # produce a smoother SAR image for a less noisy threshold
+        # then further clean it up using morphological opening
+        denoised = denoise_nl_means(image, h=0.1, multichannel=True)
+        flooded = ((denoised[:, :, 0] <= 0.1) * (denoised[:, :, 1] <= 0.1)).astype(np.uint8)
+        flooded = cv2.morphologyEx(flooded, cv2.MORPH_OPEN, morph_kernel)
+        # combine them so that background has index 0, union has index 1, intersection 2
+        result = flooded + label
+        # store results to file
+        image_name = Path(dataset.image_files[index]).name
+        with rasterio.open(str(result_path / image_name), "w", **profile) as dst:
+            dst.write(result[np.newaxis, ...])
+
+    # Run a bunch of parallel jobs, using the same function
+    Parallel(n_jobs=12)(delayed(process_image)(i) for i in tqdm(range(len(dataset))))
+    # just some final checks, just in case
+    LOG.info("Validating results...")
+    result_images = glob(str(result_path / "*.tif"))
+    assert len(result_images) == len(dataset), \
+        f"Length mismatch between dataset ({len(dataset)}) and result ({len(result_images)})"
+    LOG.info("Done!")

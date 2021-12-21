@@ -21,6 +21,11 @@ def stats(config: StatsConfig):
 
 
 @cli.command()
+def pseudolabel(config: PreparationConfig):
+    preproc.generate_pseudolabels(config=config)
+
+
+@cli.command()
 def train(config: TrainConfig):
     training.train(config=config)
 

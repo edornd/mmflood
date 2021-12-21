@@ -145,3 +145,11 @@ def apply_leaf(module, f):
 
 def set_trainable(layers: list, value: bool) -> None:
     apply_leaf(layers, lambda m: set_trainable_attr(m, value))
+
+
+def entropy(label: np.ndarray, ignore: int = 255) -> np.ndarray:
+    valid = label.copy()
+    valid[valid == ignore] = 0
+    marg = np.histogramdd(valid.ravel(), bins=2)[0] / label.size
+    marg = list(filter(lambda p: p > 0, np.ravel(marg)))
+    return -np.sum(np.multiply(marg, np.log2(marg)))

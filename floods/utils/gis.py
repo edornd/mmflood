@@ -7,7 +7,7 @@ from rasterio.transform import Affine
 from rasterio.windows import Window
 
 
-def imread(path: Path, channels_first: bool = True) -> np.ndarray:
+def imread(path: Path, channels_first: bool = True, return_metadata: bool = False) -> np.ndarray:
     """Wraps rasterio open functionality to read the numpy array and exit the context.
 
     Args:
@@ -19,7 +19,11 @@ def imread(path: Path, channels_first: bool = True) -> np.ndarray:
     """
     with rasterio.open(str(path), mode="r", driver="GTiff") as src:
         image = src.read()
-    return image if channels_first else image.transpose(1, 2, 0)
+        metadata = src.profile.copy()
+    image = image if channels_first else image.transpose(1, 2, 0)
+    if return_metadata:
+        return image, metadata
+    return image
 
 
 def mask_raster(path: Path, mask: np.ndarray, mask_value: int = 0) -> None:
@@ -41,6 +45,15 @@ def mask_raster(path: Path, mask: np.ndarray, mask_value: int = 0) -> None:
 
 
 def write_window(window: Window, source: DatasetReader, path: Path, transform: Affine = None) -> None:
+    """Stores the data inside the given window, cutting it from the source dataset.
+    The image is stored in the given path. When the transform is None, the source transform is used instead.
+
+    Args:
+        window (Window): rasterio Window to delimit the target image
+        source (DatasetReader): source TIFF to be cut
+        path (Path): path to the target file to be created
+        transform (Affine, optional): Optional alternative transform. Defaults to None.
+    """
     kwargs = source.meta.copy()
     transform = transform or source.transform
     transform = rasterio.windows.transform(window, transform)

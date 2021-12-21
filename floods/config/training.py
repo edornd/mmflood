@@ -113,7 +113,7 @@ class DatasetConfig(EnvConfig):
     class_weights: str = Field(None, description="Optional path to a class weight array (npy format)")
     mask_body_ratio: float = Field(None, description="Percentage of ones in the mask before discarding the tile")
     weighted_sampling: bool = Field(False, description="Whether to sample images based on flooded ratio")
-    sample_smoothing: float = Field(0.8, description="Value between 0 and 1 to smooth out the weights (1 = maximum)")
+    sample_smoothing: float = Field(0.8, description="Value between 0 and 1 to smooth out the weights (1 = None)")
 
 
 class ModelConfig(EnvConfig):

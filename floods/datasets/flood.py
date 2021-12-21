@@ -129,3 +129,39 @@ class FloodDataset(DatasetBase):
 
     def __len__(self) -> int:
         return len(self.image_files)
+
+
+class WeightedFloodDataset(FloodDataset):
+    def __init__(self,
+                 path: Path,
+                 subset: str = "train",
+                 include_dem: bool = False,
+                 transform_base: Callable = None,
+                 transform_sar: Callable = None,
+                 transform_dem: Callable = None,
+                 normalization: Callable = None,
+                 class_weights: Tuple[int, int, int] = (1.0, 0.5, 5.0)) -> None:
+        super().__init__(path,
+                         subset=subset,
+                         include_dem=include_dem,
+                         transform_base=transform_base,
+                         transform_sar=transform_sar,
+                         transform_dem=transform_dem,
+                         normalization=normalization)
+        # we need 256 positions to account for 255 indices (ignore index)
+        weights_array = np.zeros(256, dtype=np.float32)
+        weights_array[:len(class_weights)] = np.array(class_weights)
+        self.class_weights = weights_array
+        self.weight_files = sorted(glob(str(path / subset / "weight" / "*.tif")))
+        assert len(self.image_files) == len(self.weight_files), \
+            f"Length mismatch between tiles and weights: {len(self.image_files)} != {len(self.weight_files)}"
+
+    def __getitem__(self, index: int) -> Tuple[Tensor, Tensor]:
+        image, label = super().__getitem__(index)
+        # read the weight map from file
+        # 0 = background, 1 = thresholded water U ground truth 2 = threshold ∩ ground truth
+        # based on this, we produce a pixel-wise weight map, where we aim at giving more weight
+        # to areas where it's flooded and the threshold agrees, less where it's confused
+        weight_indices = imread(self.weight_files[index]).squeeze(0).astype(np.uint8)
+        weight = self.class_weights[weight_indices]
+        return image, label, weight

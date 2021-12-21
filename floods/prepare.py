@@ -17,7 +17,7 @@ from floods.models.base import Segmenter
 from floods.models.modules import SegmentationHead
 from floods.transforms import ClipNormalize, Denormalize
 from floods.utils.common import get_logger
-from floods.utils.tiling.functional import mask_body_ratio_from_threshold, weights_from_body_ratio
+from floods.utils.tiling.functional import entropy_weights, mask_body_ratio_from_threshold
 
 LOG = get_logger(__name__)
 
@@ -127,7 +127,7 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     return train_dataset, valid_dataset
 
 
-def prepare_sampler(data_root: str, dataset: FloodDataset, smoothing: float = 0.9) -> WeightedRandomSampler:
+def prepare_sampler(data_root: str, dataset: FloodDataset, smoothing: float = 0.8) -> WeightedRandomSampler:
     data_name = Path(data_root).stem
     target_file = Path("data") / f"{data_name}_sample-weights_smooth-{smoothing:.2f}.npy"
     if target_file.exists() and target_file.is_file():
@@ -135,7 +135,7 @@ def prepare_sampler(data_root: str, dataset: FloodDataset, smoothing: float = 0.
         weights = np.load(str(target_file))
     else:
         LOG.info("Computing weights for weighted random sampling")
-        weights = weights_from_body_ratio(dataset.label_files, smoothing=smoothing)
+        weights = entropy_weights(dataset.label_files, smoothing=smoothing)
         np.save(str(target_file), weights)
     # completely arbitrary, this is just here to maximize the amount of images we look at
     num_samples = len(dataset) * 2
@@ -185,7 +185,9 @@ def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
     extract_features = False
     LOG.info("Returning intermediate features: %s", str(extract_features))
     # create final segmentation head and build model
-    head = SegmentationHead(in_channels=decoder.out_channels(), num_classes=num_classes, upscale=decoder.out_reduction())
+    head = SegmentationHead(in_channels=decoder.out_channels(),
+                            num_classes=num_classes,
+                            upscale=decoder.out_reduction())
     model = Segmenter(encoder, decoder, head, return_features=extract_features)
     return model
 

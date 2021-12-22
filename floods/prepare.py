@@ -142,7 +142,7 @@ def prepare_sampler(data_root: str, dataset: FloodDataset, smoothing: float = 0.
     return WeightedRandomSampler(weights=weights, num_samples=num_samples, replacement=True)
 
 
-def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
+def prepare_model(config: TrainConfig, num_classes: int, stage: str = "train") -> nn.Module:
     cfg = config.model
 
     # instead of creating a new var, encoder is exploited for different purposes
@@ -188,7 +188,7 @@ def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
     head = SegmentationHead(in_channels=decoder.out_channels(),
                             num_classes=num_classes,
                             upscale=decoder.out_reduction())
-    if cfg.multibranch:
+    if cfg.multibranch and stage != "test":
         auxiliary = SegmentationHead(in_channels=encoder.feature_info.channels()[-1],
                                      num_classes=num_classes,
                                      upscale=encoder.feature_info.reduction()[-1])

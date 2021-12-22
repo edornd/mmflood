@@ -60,14 +60,16 @@ def test(test_config: TestConfig):
     # prepare model for inference, set pretrained to False to avoid loading additional weights
     LOG.info("Preparing model...")
     config.model.pretrained = False
-    model = prepare_model(config=config, num_classes=num_classes)
+    model = prepare_model(config=config, num_classes=num_classes, stage="test")
     # load the best checkpoint available
     if test_config.checkpoint_path is not None:
         ckpt_path = Path(test_config.checkpoint_path)
     else:
         ckpt_path = find_best_checkpoint(model_folder)
+    # load the checkpoint found: make sure to load without strict in case of aux losses
     assert ckpt_path.exists(), f"Checkpoint '{str(ckpt_path)}' not found"
-    model.load_state_dict(torch.load(str(ckpt_path), map_location="cpu"), strict=True)
+    strict_load = not config.model.multibranch
+    model.load_state_dict(torch.load(str(ckpt_path), map_location="cpu"), strict=strict_load)
     LOG.info("Model restored from: %s", str(ckpt_path))
 
     # prepare losses

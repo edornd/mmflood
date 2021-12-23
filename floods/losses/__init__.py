@@ -114,12 +114,7 @@ class LovaszSoftmax(nn.Module):
         self.weight = weight
 
     def forward(self, preds: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-        # mask = targets != self.ignore_index
-        # targets = targets[mask]
-        # preds = preds[mask]
 
-        # logits = torch.sigmoid(preds)
-        # probs = torch.sigmoid(preds)
         # weightning of the loss not implemented yet
         loss = lovasz_hinge(preds, targets, ignore=self.ignore_index)
         return loss

@@ -178,8 +178,6 @@ class DisplaySamples(BaseCallback):
         for i, (image, y_true, y_pred) in enumerate(trainer.sample_content):
             image = self.inverse_transform(image)
             image = rgb_ratio(sar_image=image)
-            if y_pred.ndim == 3:
-                y_pred = torch.argmax(y_pred, dim=0)
             true_masks = mask_to_rgb(y_true.numpy(), palette=self.color_palette)
             pred_masks = mask_to_rgb(y_pred.numpy(), palette=self.color_palette)
             grid = make_grid(image, true_masks, pred_masks)

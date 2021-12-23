@@ -86,7 +86,7 @@ def test(test_config: TestConfig):
 
     # prepare tiler to produce tiled batches and trainer
     tiler = SmoothTiler(tile_size=test_config.image_size,
-                        num_classes=num_classes,
+                        num_classes=1,
                         channels_first=True,
                         batch_size=test_config.trainer.batch_size,
                         mirrored=False)

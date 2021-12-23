@@ -2,15 +2,24 @@ from abc import abstractmethod
 from typing import Any, Callable, Iterable, Optional
 
 import torch
+from torch.nn import functional as F
 
 from floods.metrics import functional as func
 from floods.utils.ml import identity
 
 
-def lenient_argmax(*args: Iterable[torch.Tensor], ndims: int = 3) -> None:
+def lenient_argmax(*args: Iterable[torch.Tensor], ndims: int = 3) -> Iterable[torch.Tensor]:
     result = list()
     for tensor in args:
         tensor = tensor.argmax(dim=1) if tensor.ndim > ndims else tensor
+        result.append(tensor)
+    return result
+
+
+def lenient_sigmoid(*args: Iterable[torch.Tensor]) -> Iterable[torch.Tensor]:
+    result = list()
+    for tensor in args:
+        tensor = (F.sigmoid(tensor) > 0.5).int()
         result.append(tensor)
     return result
 
@@ -44,7 +53,7 @@ class ConfusionMatrix(Metric):
     """
     def __init__(self,
                  ignore_index: Optional[int] = 255,
-                 transform: Callable = lenient_argmax,
+                 transform: Callable = lenient_sigmoid,
                  device: str = "cpu") -> None:
         super().__init__(transform=transform, device=device)
         self.ignore_index = ignore_index
@@ -81,7 +90,7 @@ class GeneralStatistics(Metric):
     def __init__(self,
                  ignore_index: Optional[int] = 255,
                  reduction: Optional[str] = "micro",
-                 transform: Callable = lenient_argmax,
+                 transform: Callable = lenient_sigmoid,
                  device: str = "cpu") -> None:
         super().__init__(transform=transform, device=device)
         self.ignore_index = ignore_index

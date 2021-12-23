@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict
 
 import torch
 from torch import nn
+from torch.nn import functional as func
 from torch.optim import Optimizer
 
 from accelerate import Accelerator
@@ -76,8 +77,9 @@ class FloodTrainer(Trainer):
         # also, we take just the first one, a lil bit hardcoded i know
         # TODO: better sampling from batches
         if self.sample_batches is not None and batch_index in self.sample_batches:
+            y_pred = (func.sigmoid(y_pred) > 0.5).int()
             images = self.accelerator.gather(x)
-            self._store_samples(images[:1], y_pred[:1], y_true[:1])
+            self._store_samples(images[:1], y_pred[:1], y_true[:1].int())
         # update metrics and return losses
         self._update_metrics(y_true=y_true, y_pred=y_pred, stage=TrainerStage.val)
         return loss, {}
@@ -102,8 +104,7 @@ class FloodTrainer(Trainer):
         if output_path:
             if self.sample_batches is None or batch_index in self.sample_batches:
                 save_grid(x[0],
-                          y[0],
-                          y_pred[0].argmax(dim=0),
+                          y[0].int(), (func.sigmoid(y_pred[0]) > 0.5).int(),
                           filepath=output_path,
                           filename=f"{batch_index:06d}",
                           palette=FloodDataset.palette())

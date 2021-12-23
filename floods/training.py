@@ -40,7 +40,6 @@ def train(config: TrainConfig):
     # prepare datasets
     LOG.info("Loading datasets...")
     train_set, valid_set = prepare_datasets(config=config)
-    num_classes = len(train_set.categories())
     LOG.info("Full sets - train set: %d samples, validation set: %d samples", len(train_set), len(valid_set))
 
     # prepare accelerator ASAP (but not too soon, or it breaks the dataset masking)
@@ -69,7 +68,7 @@ def train(config: TrainConfig):
                               worker_init_fn=seed_worker)
     # prepare models
     LOG.info("Preparing model...")
-    new_model = prepare_model(config=config, num_classes=num_classes).to(accelerator.device)
+    new_model = prepare_model(config=config).to(accelerator.device)
 
     # prepare optimizer and scheduler
     optimizer = config.optimizer.instantiate(new_model.parameters())
@@ -83,7 +82,7 @@ def train(config: TrainConfig):
 
     # prepare metrics and logger
     monitored = config.trainer.monitor.name
-    train_metrics, valid_metrics = prepare_metrics(config, device=accelerator.device, num_classes=num_classes)
+    train_metrics, valid_metrics = prepare_metrics(config, device=accelerator.device)
     logger = TensorBoardLogger(log_folder=logs_folder, comment=config.comment)
     # logging configuration to tensorboard
     LOG.debug("Logging flattened configuration to TensorBoard")
@@ -111,16 +110,16 @@ def train(config: TrainConfig):
                           sample_batches=num_samples,
                           debug=config.debug)
 
-    trainer.add_callback(EarlyStopping(call_every=1,
-                                       metric=monitored,
-                                       criterion=EarlyStoppingCriterion.maximum,
-                                       patience=config.trainer.patience)) \
-           .add_callback(Checkpoint(call_every=1,
+    trainer.add_callback(Checkpoint(call_every=1,
                                     monitor=monitored,
                                     model_folder=model_folder,
                                     save_best=True)) \
            .add_callback(DisplaySamples(inverse_transform=inverse_transform(mean=train_set.mean(), std=train_set.std()),
                                         color_palette=train_set.palette()))
+            #.add_callback(EarlyStopping(call_every=1,
+                                        #    metric=monitored,
+                                        #    criterion=EarlyStoppingCriterion.maximum,
+                                        #    patience=config.trainer.patience)) \
     # storing config and starting training
     config.version = git_revision_hash()
     store_config(config, path=config_path)

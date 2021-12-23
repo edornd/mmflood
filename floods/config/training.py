@@ -2,12 +2,12 @@ from typing import Any, List, Optional
 
 from inplace_abn import InPlaceABN, InPlaceABNSync
 from pydantic import BaseSettings, Field, validator
-from torch.nn import BatchNorm2d, CrossEntropyLoss, Identity, LeakyReLU, ReLU
+from torch.nn import BatchNorm2d, Identity, LeakyReLU, ReLU
 from torch.optim import SGD, Adam, AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR, ExponentialLR, ReduceLROnPlateau
 
 from floods.config.base import CallableEnum, EnvConfig, Initializer, InstantiableSettings
-from floods.losses import CombinedLoss, DualTanimotoLoss, FocalLoss, FocalTverskyLoss, LovaszSoftmax, TanimotoLoss
+from floods.losses import BCEWithLogitsLoss, CombinedLoss, FocalLoss, FocalTverskyLoss, LovaszSoftmax
 from floods.metrics import F1Score, IoU, Precision, Recall
 from floods.utils.schedulers import PolynomialLRDecay
 
@@ -26,14 +26,12 @@ class Schedulers(CallableEnum):
 
 
 class Losses(CallableEnum):
-    crossent = CrossEntropyLoss
+    bce = BCEWithLogitsLoss
     focal = FocalLoss
     tversky = FocalTverskyLoss
-    tanimoto = TanimotoLoss
     lovasz = LovaszSoftmax
-    compl = DualTanimotoLoss
     combo = Initializer(CombinedLoss,
-                        criterion_a=Initializer(CrossEntropyLoss),
+                        criterion_a=Initializer(BCEWithLogitsLoss),
                         criterion_b=Initializer(FocalTverskyLoss))
 
 
@@ -93,15 +91,16 @@ class SchedulerConfig(InstantiableSettings):
 
 
 class LossConfig(InstantiableSettings):
-    target: Losses = Field(Losses.crossent, description="Which loss to apply")
+    target: Losses = Field(Losses.bce, description="Which loss to apply")
     alpha: float = Field(0.6, description="Alpha param. for Tversky loss (0.5 for Dice)")
     beta: float = Field(0.4, description="Beta param. for Tversky loss (0.5 foor Dice)")
     gamma: float = Field(2.0, description="Gamma param. for focal loss (1.0 for standard CE)")
+    reduction: str = Field("mean", description="How to reduce the loss")
 
     def instantiate(self, *args, **kwargs) -> Any:
         assert "ignore_index" in kwargs, "Ignore index required"
         # update current kwargs according to the loss
-        if self.target == Losses.focal or self.target == Losses.tanimoto:
+        if self.target == Losses.focal:
             kwargs.update(gamma=self.gamma)
         elif self.target == Losses.tversky:
             kwargs.update(alpha=self.alpha, beta=self.beta, gamma=self.gamma)

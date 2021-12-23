@@ -142,7 +142,7 @@ def prepare_sampler(data_root: str, dataset: FloodDataset, smoothing: float = 0.
     return WeightedRandomSampler(weights=weights, num_samples=num_samples, replacement=True)
 
 
-def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
+def prepare_model(config: TrainConfig) -> nn.Module:
     cfg = config.model
 
     # instead of creating a new var, encoder is exploited for different purposes
@@ -185,31 +185,32 @@ def prepare_model(config: TrainConfig, num_classes: int) -> nn.Module:
     extract_features = False
     LOG.info("Returning intermediate features: %s", str(extract_features))
     # create final segmentation head and build model
-    head = SegmentationHead(in_channels=decoder.out_channels(), num_classes=num_classes, upscale=decoder.out_reduction())
+
+    head = SegmentationHead(in_channels=decoder.out_channels(), upscale=decoder.out_reduction())
     model = Segmenter(encoder, decoder, head, return_features=extract_features)
     return model
 
 
-def prepare_metrics(config: TrainConfig, device: torch.device, num_classes: int) -> Tuple[dict, dict]:
+def prepare_metrics(config: TrainConfig, device: torch.device) -> Tuple[dict, dict]:
     # prepare metrics
     t_metrics = config.trainer.train_metrics
     v_metrics = config.trainer.val_metrics
-    train_metrics = {e.name: e.value(num_classes=num_classes, device=device) for e in t_metrics}
-    valid_metrics = {e.name: e.value(num_classes=num_classes, device=device) for e in v_metrics}
-    valid_metrics.update(dict(class_iou=IoU(num_classes=num_classes, reduction=None, device=device),
-                              class_f1=F1Score(num_classes=num_classes, reduction=None, device=device)))
+    train_metrics = {e.name: e.value(device=device) for e in t_metrics}
+    valid_metrics = {e.name: e.value(device=device) for e in v_metrics}
+    valid_metrics.update(dict(class_iou=IoU(reduction=None, device=device),
+                              class_f1=F1Score(reduction=None, device=device)))
     LOG.debug("Train metrics: %s", str(list(train_metrics.keys())))
     LOG.debug("Eval. metrics: %s", str(list(valid_metrics.keys())))
     return train_metrics, valid_metrics
 
 
-def prepare_test_metrics(config: TestConfig, device: torch.device, num_classes: int) -> Dict[str, Metric]:
-    test_metrics = {e.name: e.value(num_classes=num_classes, device=device) for e in config.test_metrics}
+def prepare_test_metrics(config: TestConfig, device: torch.device) -> Dict[str, Metric]:
+    test_metrics = {e.name: e.value(device=device) for e in config.test_metrics}
     # include class-wise metrics
-    test_metrics.update(dict(precision=Precision(num_classes=num_classes, reduction=None, device=device),
-                             recall=Recall(num_classes=num_classes, reduction=None, device=device),
-                             class_iou=IoU(num_classes=num_classes, reduction=None, device=device),
-                             class_f1=F1Score(num_classes=num_classes, reduction=None, device=device)))
+    test_metrics.update(dict(precision=Precision(reduction=None, device=device),
+                             recall=Recall(reduction=None, device=device),
+                             class_iou=IoU(reduction=None, device=device),
+                             class_f1=F1Score(eduction=None, device=device)))
     # include a confusion matrix
-    test_metrics.update(dict(conf_mat=ConfusionMatrix(num_classes=num_classes, device=device)))
+    test_metrics.update(dict(conf_mat=ConfusionMatrix(device=device)))
     return test_metrics

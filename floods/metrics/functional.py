@@ -28,26 +28,7 @@ def valid_samples(ignore_index: int,
     return valid_target.long()
 
 
-def count_classes(tensor: torch.Tensor, ignore_index: Optional[int] = None) -> int:
-    """Infer the number of classes by getting the maximum class index, excluding the ignored one.
-
-    Args:
-        tensor (torch.Tensor): generic tensor containing class indices
-        ignore_index (Optional[int], optional): index to be ignored, if any. Defaults to None.
-
-    Returns:
-        int: maximum class index + 1 to account for 0-indexing
-    """
-    classes = tensor.unique()
-    if ignore_index is not None:
-        classes = classes[classes != ignore_index]
-    return int(classes.max().item()) + 1
-
-
-def confusion_matrix(y_true: torch.Tensor,
-                     y_pred: torch.Tensor,
-                     num_classes: Optional[int] = None,
-                     ignore_index: Optional[int] = None) -> torch.Tensor:
+def confusion_matrix(y_true: torch.Tensor, y_pred: torch.Tensor, ignore_index: Optional[int] = None) -> torch.Tensor:
     """Computes the confusion matrix C where each entry C_{i,j} is the number of observations
     in group i that were predicted in group j.
 
@@ -60,17 +41,15 @@ def confusion_matrix(y_true: torch.Tensor,
     Returns:
         torch.Tensor: confusion matric C [num_classes, num_classes]
     """
-    if not num_classes:
-        num_classes = count_classes(y_true, ignore_index=ignore_index)
     flat_target = y_true.view(-1)
     flat_pred = y_pred.view(-1)
     # exclude indices belonging to the ignore_index
     if ignore_index is not None:
         flat_target, flat_pred = valid_samples(ignore_index, y_true=y_true, y_pred=y_pred)
     # use bins to compute the CM
-    unique_labels = flat_target * num_classes + flat_pred
-    bins = torch.bincount(unique_labels, minlength=num_classes**2)
-    cm = bins.reshape(num_classes, num_classes).squeeze().int()
+    unique_labels = flat_target + flat_pred
+    bins = torch.bincount(unique_labels, minlength=4)
+    cm = bins.reshape(2, 2).squeeze().int()
     return cm
 
 
@@ -96,18 +75,15 @@ def statistics_from_one_hot(y_true: torch.Tensor,
         - If ``reduce='micro'``, the returned tensors are ``(N,)`` tensors
         - If ``reduce='macro'``, the returned tensors are ``(N,C)`` tensors
     """
-    if reduce:
-        dim = [0, 1] if y_pred.ndim == 2 else [1, 2]
-    else:
-        dim = 0 if y_pred.ndim == 2 else 2
+
     true_pred = y_true == y_pred
     false_pred = y_true != y_pred
     pos_pred = y_pred == 1
     neg_pred = y_pred == 0
-    tp = (true_pred * pos_pred).sum(dim=dim)
-    fp = (false_pred * pos_pred).sum(dim=dim)
-    tn = (true_pred * neg_pred).sum(dim=dim)
-    fn = (false_pred * neg_pred).sum(dim=dim)
+    tp = (true_pred * pos_pred).sum()
+    fp = (false_pred * pos_pred).sum()
+    tn = (true_pred * neg_pred).sum()
+    fn = (false_pred * neg_pred).sum()
     return tp.long(), fp.long(), tn.long(), fn.long()
 
 

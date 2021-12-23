@@ -34,10 +34,9 @@ class Decoder(nn.Module):
 
 class Head(nn.Module):
     @abstractmethod
-    def __init__(self, in_channels: int, num_classes: int):
+    def __init__(self, in_channels: int):
         super().__init__()
         self.in_channels = in_channels
-        self.num_classes = num_classes
 
 
 class Segmenter(nn.Module):

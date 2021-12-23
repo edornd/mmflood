@@ -4,7 +4,7 @@ from typing import Any, Callable, Iterable, Optional
 import torch
 
 from floods.metrics import functional as func
-from floods.utils.ml import identity, one_hot
+from floods.utils.ml import identity
 
 
 def lenient_argmax(*args: Iterable[torch.Tensor], ndims: int = 3) -> None:
@@ -43,12 +43,10 @@ class ConfusionMatrix(Metric):
     The process ignores the given ignore_index to exclude those positions from the computation (optional).
     """
     def __init__(self,
-                 num_classes: Optional[int] = None,
                  ignore_index: Optional[int] = 255,
                  transform: Callable = lenient_argmax,
                  device: str = "cpu") -> None:
         super().__init__(transform=transform, device=device)
-        self.num_classes = num_classes
         self.ignore_index = ignore_index
         self.reset()
 
@@ -60,7 +58,7 @@ class ConfusionMatrix(Metric):
         :type target: torch.Tensor
         """
         # assume 0=batch size, 1=classes, 2, 3 = dims
-        partial = func.confusion_matrix(y_true, y_pred, num_classes=self.num_classes, ignore_index=self.ignore_index)
+        partial = func.confusion_matrix(y_true, y_pred, ignore_index=self.ignore_index)
         self.confusion_matrix += partial
 
     def compute(self) -> torch.Tensor:
@@ -72,7 +70,7 @@ class ConfusionMatrix(Metric):
         return self.confusion_matrix
 
     def reset(self) -> None:
-        self.confusion_matrix = torch.zeros((self.num_classes, self.num_classes), device=self.device)
+        self.confusion_matrix = torch.zeros((2, 2), device=self.device)
 
 
 class GeneralStatistics(Metric):
@@ -81,13 +79,11 @@ class GeneralStatistics(Metric):
     Micro VS macro: https://datascience.stackexchange.com/questions/15989
     """
     def __init__(self,
-                 num_classes: int,
                  ignore_index: Optional[int] = 255,
                  reduction: Optional[str] = "micro",
                  transform: Callable = lenient_argmax,
                  device: str = "cpu") -> None:
         super().__init__(transform=transform, device=device)
-        self.num_classes = num_classes
         self.ignore_index = ignore_index
         self.reduction = reduction
         self.reduce_first = reduction == "micro"
@@ -106,8 +102,8 @@ class GeneralStatistics(Metric):
         else:
             flat_true, flat_pred = y_true.view(-1), y_pred.view(-1)
 
-        onehot_true = one_hot(flat_true, num_classes=self.num_classes)
-        onehot_pred = one_hot(flat_pred, num_classes=self.num_classes)
+        onehot_true = (flat_true > 0).float()  # one_hot(flat_true, num_classes=self.num_classes)
+        onehot_pred = flat_pred  # one_hot(flat_pred, num_classes=self.num_classes)
         tp, fp, tn, fn = func.statistics_from_one_hot(onehot_true, onehot_pred, reduce=self.reduce_first)
         self.tp += tp
         self.fp += fp
@@ -131,7 +127,7 @@ class GeneralStatistics(Metric):
         return torch.cat(outputs, dim=-1)
 
     def reset(self) -> None:
-        shape = () if self.reduce_first else (self.num_classes, )
+        shape = ()  # if self.reduce_first else (self.num_classes, )
         self.tp = torch.zeros(shape, dtype=torch.long, device=self.device)
         self.fp = torch.zeros(shape, dtype=torch.long, device=self.device)
         self.tn = torch.zeros(shape, dtype=torch.long, device=self.device)

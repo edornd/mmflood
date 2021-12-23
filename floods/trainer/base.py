@@ -57,10 +57,9 @@ class Trainer:
         self.logger = logger or EmptyLogger()
         # setup metrics, if any
         self.metrics = dict()
-        if train_metrics is not None:
-            self.add_metrics(stage=TrainerStage.train, metrics=train_metrics)
-        if val_metrics is not None:
-            self.add_metrics(stage=TrainerStage.val, metrics=val_metrics)
+
+        self.add_metrics(stage=TrainerStage.train, metrics=train_metrics)
+        self.add_metrics(stage=TrainerStage.val, metrics=val_metrics)
         # internal state
         self.rank = get_rank()
         self.is_main = self.rank == 0
@@ -157,7 +156,7 @@ class Trainer:
 
     def add_metrics(self, stage: TrainerStage, metrics: Dict[str, Metric]) -> Trainer:
         assert stage.value not in self.metrics, "stage already present in metrics"
-        self.metrics[stage.value] = metrics
+        self.metrics[stage.value] = metrics or dict()
 
     def step(self) -> None:
         self.global_step += 1

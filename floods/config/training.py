@@ -114,7 +114,7 @@ class DatasetConfig(EnvConfig):
     class_weights: str = Field(None, description="Optional path to a class weight array (npy format)")
     mask_body_ratio: float = Field(None, description="Percentage of ones in the mask before discarding the tile")
     weighted_sampling: bool = Field(False, description="Whether to sample images based on flooded ratio")
-    sample_smoothing: float = Field(0.8, description="Value between 0 and 1 to smooth out the weights (1 = maximum)")
+    sample_smoothing: float = Field(0.8, description="Value between 0 and 1 to smooth out the weights (1 = None)")
 
 
 class ModelConfig(EnvConfig):
@@ -122,8 +122,8 @@ class ModelConfig(EnvConfig):
     decoder: str = Field("PSPDenseNet", description="Which decoder to apply")
     pretrained: bool = Field(True, description="Whether to use a pretrained encoder or not")
     freeze: bool = Field(False, description="Freeze the feature extractor in incremental steps")
+    multibranch: bool = Field(False, description="Includes an additional low-res output, right after the encoder")
     output_stride: int = Field(16, description="Output stride for ResNet-like models")
-    init_balanced: bool = Field(False, description="Enable background-based initialization for new classes")
     act: ActivationLayers = Field(ActivationLayers.relu, description="Which activation layer to use")
     norm: NormLayers = Field(NormLayers.std, description="Which normalization layer to use")
     dropout2d: bool = Field(False, description="Whether to apply standard drop. or channel drop. to the last f.map")

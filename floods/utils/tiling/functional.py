@@ -5,6 +5,7 @@ import numpy as np
 from tqdm import tqdm
 
 from floods.utils.gis import imread
+from floods.utils.ml import entropy
 
 
 def tile_overlapped(image: np.ndarray,
@@ -169,3 +170,24 @@ def weights_from_body_ratio(labels: List[Path], normalize: bool = True, smoothin
     if normalize:
         weights /= weights.max()
     return weights
+
+
+def entropy_weights(labels: List[Path], smoothing: float = 0.8) -> np.ndarray:
+    """Computes the entropy from the given list of labels (binary labels).
+
+    Args:
+        labels (List[Path]): list of filenames to be read
+        smoothing (float, optional): Value to smooth out the final array. Defaults to 0.8.
+
+    Returns:
+        np.ndarray: array of smoothed entropy values (max = 1.0, min = 0.0)
+    """
+    assert smoothing <= 1, "Smooth factor must be between 0 and 1"
+    minval = 1.0 - smoothing
+    entropies = list()
+    for label_path in tqdm(labels):
+        label = imread(label_path)
+        entropies.append(entropy(label))
+
+    entropies = np.array(entropies)
+    return np.clip(entropies * smoothing + minval, 0, 1)

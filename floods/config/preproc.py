@@ -34,6 +34,8 @@ class PreparationConfig(EnvConfig):
     morphology: bool = Field(True, description="whether to use morphological operators or not")
     morph_kernel: int = Field(5, description="Kernel size for mask preprocessing using opening/closing")
     nan_threshold: float = Field(0.75, description="Percentage of invalid pixels before discaring the tile")
+    vv_multiplier: float = Field(5.0, description="Fixed multiplier for threshold-based pseudolabeling (1st channel)")
+    vh_multiplier: float = Field(10.0, description="Fixed multiplier for threshold-based pseudolabeling (2nd channel)")
 
     def subset_exists(cls, v):
         allowed = {"train", "test", "val"}

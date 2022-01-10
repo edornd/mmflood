@@ -8,7 +8,7 @@ from floods.config import TrainConfig
 from floods.logging.tensorboard import TensorBoardLogger
 from floods.prepare import inverse_transform, prepare_datasets, prepare_metrics, prepare_model, prepare_sampler
 from floods.trainer.callbacks import Checkpoint, DisplaySamples, EarlyStopping, EarlyStoppingCriterion
-from floods.trainer.flood import FloodTrainer, PSPTrainer
+from floods.trainer.flood import FloodTrainer, MultiBranchTrainer
 from floods.utils.common import flatten_config, get_logger, git_revision_hash, init_experiment, store_config
 from floods.utils.ml import load_class_weights, seed_everything, seed_worker
 
@@ -92,12 +92,8 @@ def train(config: TrainConfig):
     LOG.info("Visualize: %s, num. batches for visualization: %s", str(config.visualize), str(config.num_samples))
     num_samples = int(config.visualize) * config.num_samples
 
-    # choose trainer class depending on model
-    if(config.model.decoder.startswith('PSP')):
-        trainer_cls = PSPTrainer
-    else:
-        trainer_cls = FloodTrainer
-
+    # choose the trainer class depending on model and training strategy
+    trainer_cls = MultiBranchTrainer if config.model.multibranch else FloodTrainer
     trainer = trainer_cls(accelerator=accelerator,
                           model=new_model,
                           optimizer=optimizer,

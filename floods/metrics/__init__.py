@@ -130,8 +130,9 @@ class GeneralStatistics(Metric):
             self.fp.unsqueeze(-1),
             self.tn.unsqueeze(-1),
             self.fn.unsqueeze(-1),
-            self.tp.unsqueeze(-1) + self.fn.unsqueeze(-1),  # support
         ]
+        # add support
+        outputs.append(sum(outputs))
         return torch.cat(outputs, dim=-1)
 
     def reset(self) -> None:

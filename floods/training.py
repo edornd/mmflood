@@ -110,16 +110,17 @@ def train(config: TrainConfig):
                           sample_batches=num_samples,
                           debug=config.debug)
 
-    trainer.add_callback(Checkpoint(call_every=1,
+    trainer.add_callback(EarlyStopping(call_every=1,
+                                       metric=monitored,
+                                       criterion=EarlyStoppingCriterion.maximum,
+                                       patience=config.trainer.patience))\
+           .add_callback(Checkpoint(call_every=1,
                                     monitor=monitored,
                                     model_folder=model_folder,
                                     save_best=True)) \
            .add_callback(DisplaySamples(inverse_transform=inverse_transform(mean=train_set.mean(), std=train_set.std()),
                                         color_palette=train_set.palette()))
-            #.add_callback(EarlyStopping(call_every=1,
-                                        #    metric=monitored,
-                                        #    criterion=EarlyStoppingCriterion.maximum,
-                                        #    patience=config.trainer.patience)) \
+
     # storing config and starting training
     config.version = git_revision_hash()
     store_config(config, path=config_path)

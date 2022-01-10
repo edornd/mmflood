@@ -47,6 +47,10 @@ def create_encoder(name: str,
     # - TResNets have reductions:   4, 8, 16, 32
     # - ResNets have reductions: 2, 4, 8, 16, 32
     indices = available_decoders[decoder].func.required_indices(encoder=name)
+    # Remove output stride if it's a densenet
+    if(name.startswith("dense")):
+        additional_args.pop('output_stride', None)
+        
     model = timm.create_model(name, pretrained=pretrained, features_only=True, out_indices=indices, **additional_args)
     # if channels > 3:
     #     model = expand_input(model, num_copies=(channels - 3))

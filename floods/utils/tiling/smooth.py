@@ -95,7 +95,7 @@ def unpad_image(padded_image: torch.Tensor, tile_size: int, subdivisions: int) -
     # compute the same amount as before, window - window/subdivisions
     pad = int(round(tile_size * (1 - 1.0 / subdivisions)))
     # crop the image left, right, top and bottom
-    result = padded_image[pad:-pad, pad:-pad, :]
+    result = padded_image[pad:-pad, pad:-pad]
     return result
 
 
@@ -202,7 +202,6 @@ def reconstruct(canvas: torch.Tensor, tile_size: int, coords: List[tuple], predi
 def predict_smooth_windowing(image: torch.Tensor,
                              tile_size: int,
                              subdivisions: int,
-                             num_classes: int,
                              prediction_fn: Callable,
                              batch_size: int = None,
                              channels_first: bool = False,
@@ -214,14 +213,13 @@ def predict_smooth_windowing(image: torch.Tensor,
         image (np.ndarray): input image, expected a 3D vector
         tile_size (int): size of each squared tile
         subdivisions (int): number of subdivisions over the single tile for overlaps
-        num_classes (int): number of output classes, required to rebuild
         prediction_fn (Callable): callback that takes the input batch and returns an output tensor
         batch_size (int, optional): size of each batch. Defaults to None.
         channels_first (int, optional): whether the input image is channels-first or not
         mirrored (bool, optional): whether to use dihedral predictions (every simmetry). Defaults to False.
 
     Returns:
-        np.ndarray: numpy array with dimensions (w, h, num_classes), containing smooth predictions
+        np.ndarray: numpy array with dimensions (w, h), containing smooth predictions
     """
     if channels_first:
         image = image.permute(1, 2, 0)
@@ -229,17 +227,17 @@ def predict_smooth_windowing(image: torch.Tensor,
     padded = pad_image(image=image, tile_size=tile_size, subdivisions=subdivisions)
     padded_width, padded_height, _ = padded.shape
     padded_variants = rotate_and_mirror(padded) if mirrored else [padded]
-    spline = _spline_2d(window_size=tile_size, power=2).to(image.device)
+    spline = _spline_2d(window_size=tile_size, power=2).to(image.device).squeeze(-1)
 
     results = []
     for img in padded_variants:
-        canvas = torch.zeros((padded_width, padded_height, num_classes), device=image.device)
+        canvas = torch.zeros((padded_width, padded_height), device=image.device)
         for coords, batch in windowed_generator(padded_image=img,
                                                 window_size=tile_size,
                                                 subdivisions=subdivisions,
                                                 batch_size=batch_size):
             # returns batch of channels-first, return to channels-last
-            pred_batch = prediction_fn(batch).permute(0, 2, 3, 1)
+            pred_batch = prediction_fn(batch)  # .permute(0, 2, 3, 1)
             pred_batch = [tile * spline for tile in pred_batch]
             canvas = reconstruct(canvas, tile_size=tile_size, coords=coords, predictions=pred_batch)
         canvas /= (subdivisions**2)
@@ -247,4 +245,4 @@ def predict_smooth_windowing(image: torch.Tensor,
 
     padded_result = undo_rotate_and_mirror(results) if mirrored else results[0]
     prediction = unpad_image(padded_result, tile_size=tile_size, subdivisions=subdivisions)
-    return prediction[:width, :height, :]
+    return prediction[:width, :height]

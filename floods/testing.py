@@ -40,7 +40,6 @@ def test(test_config: TestConfig):
     seed_everything(config.seed)
     # prepare evaluation transforms
     LOG.info("Loading test dataset...")
-    num_classes = len(FloodDataset.categories())
     test_transform = eval_transforms(mean=FloodDataset.mean(),
                                      std=FloodDataset.std(),
                                      clip_max=30,
@@ -60,7 +59,7 @@ def test(test_config: TestConfig):
     # prepare model for inference, set pretrained to False to avoid loading additional weights
     LOG.info("Preparing model...")
     config.model.pretrained = False
-    model = prepare_model(config=config, num_classes=num_classes)
+    model = prepare_model(config=config)
     # load the best checkpoint available
     if test_config.checkpoint_path is not None:
         ckpt_path = Path(test_config.checkpoint_path)
@@ -86,7 +85,6 @@ def test(test_config: TestConfig):
 
     # prepare tiler to produce tiled batches and trainer
     tiler = SmoothTiler(tile_size=test_config.image_size,
-                        num_classes=1,
                         channels_first=True,
                         batch_size=test_config.trainer.batch_size,
                         mirrored=False)
@@ -103,7 +101,7 @@ def test(test_config: TestConfig):
                                         color_palette=test_dataset.palette(),
                                         stage="test"))
     # prepare testing metrics, same as validation with the addition of a confusion matrix
-    eval_metrics = prepare_test_metrics(config=test_config, device=accelerator.device, num_classes=num_classes)
+    eval_metrics = prepare_test_metrics(config=test_config, device=accelerator.device)
 
     predictions_path = check_or_make_dir(out_folder / "images")
     losses, _ = trainer.predict(test_dataloader=test_loader,

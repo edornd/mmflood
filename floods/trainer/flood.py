@@ -77,7 +77,7 @@ class FloodTrainer(Trainer):
         # also, we take just the first one, a lil bit hardcoded i know
         # TODO: better sampling from batches
         if self.sample_batches is not None and batch_index in self.sample_batches:
-            y_pred = (func.sigmoid(y_pred) > 0.5).int()
+            y_pred = (torch.sigmoid(y_pred) > 0.5).int()
             images = self.accelerator.gather(x)
             self._store_samples(images[:1], y_pred[:1], y_true[:1].int())
         # update metrics and return losses
@@ -93,18 +93,18 @@ class FloodTrainer(Trainer):
 
         # define a callback with forward
         def callback(patches: torch.Tensor) -> torch.Tensor:
-            patch_preds, _ = self.model(patches)
+            patch_preds = self.model(patches)
             return patch_preds
 
         y_pred = self.tiler(x[0], callback)
-        y_pred = y_pred.permute(2, 0, 1).unsqueeze(0)
+        y_pred = y_pred.unsqueeze(0)  # .permute(2, 0, 1)
         loss = self.criterion(y_pred, y.long())
         # cannot gather if every image has different dimensions
         # store samples for visualization, if required.
         if output_path:
             if self.sample_batches is None or batch_index in self.sample_batches:
                 save_grid(x[0],
-                          y[0].int(), (func.sigmoid(y_pred[0]) > 0.5).int(),
+                          y[0].int(), (torch.sigmoid(y_pred[0]) > 0.5).int(),
                           filepath=output_path,
                           filename=f"{batch_index:06d}",
                           palette=FloodDataset.palette())

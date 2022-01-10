@@ -82,13 +82,11 @@ class FixedOverlaptiler(Tiler):
 class SmoothTiler(Tiler):
     def __init__(self,
                  tile_size: int,
-                 num_classes: int,
                  channels_first: bool = False,
                  subdivisions: int = 2,
                  batch_size: int = 4,
                  mirrored: bool = True) -> None:
         super().__init__(tile_size, channels_first)
-        self.num_classes = num_classes
         self.subdivisions = subdivisions
         self.batch_size = batch_size
         self.mirrored = mirrored
@@ -97,7 +95,6 @@ class SmoothTiler(Tiler):
         return predict_smooth_windowing(image=image,
                                         tile_size=self.tile_size,
                                         subdivisions=self.subdivisions,
-                                        num_classes=self.num_classes,
                                         prediction_fn=callback,
                                         batch_size=self.batch_size,
                                         channels_first=self.channels_first,

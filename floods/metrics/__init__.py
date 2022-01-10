@@ -2,7 +2,6 @@ from abc import abstractmethod
 from typing import Any, Callable, Iterable, Optional
 
 import torch
-from torch.nn import functional as F
 
 from floods.metrics import functional as func
 from floods.utils.ml import identity
@@ -19,7 +18,7 @@ def lenient_argmax(*args: Iterable[torch.Tensor], ndims: int = 3) -> Iterable[to
 def lenient_sigmoid(*args: Iterable[torch.Tensor]) -> Iterable[torch.Tensor]:
     result = list()
     for tensor in args:
-        tensor = (F.sigmoid(tensor) > 0.5).int()
+        tensor = (torch.sigmoid(tensor) > 0.5).int()
         result.append(tensor)
     return result
 

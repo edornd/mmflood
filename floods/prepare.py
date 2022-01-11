@@ -10,7 +10,7 @@ from torch.utils.data.sampler import WeightedRandomSampler
 
 from floods.config import TestConfig, TrainConfig
 from floods.datasets.base import DatasetBase
-from floods.datasets.flood import FloodDataset
+from floods.datasets.flood import FloodDataset, RGBFloodDataset
 from floods.metrics import ConfusionMatrix, F1Score, IoU, Metric, Precision, Recall
 from floods.models import create_decoder, create_encoder, create_multi_encoder
 from floods.models.base import MultiBranchSegmenter, Segmenter
@@ -66,16 +66,19 @@ def inverse_transform(mean: tuple, std: tuple):
 
 
 def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
-    # a bit dirty, but at least check that in_channels allows for DEM if present
-    required_channels = 3 if config.data.include_dem else 2
-    assert config.data.in_channels == required_channels, \
-        f"Declared channels: {required_channels}, required: {config.data.in_channels}"
+    # sanity check: least channels = 2, (vv, vh only), max. channels = 4 (rgb ratio + DEM)
+    assert config.data.in_channels >= 2 and config.data.in_channels <= 4, \
+        f"Declared channels: {config.data.in_channels} not supported"
+    # pick which dataset to use, depending on configuration
+    # either 4 - 1, or 3 - 0
+    use_rgb = (config.data.in_channels - int(config.data.include_dem)) == 3
+    dataset_cls = RGBFloodDataset if use_rgb else FloodDataset
 
     # instantiate transforms for training and evaluation
     # adapt hardcoded tensors to the current number of channels
     data_root = Path(config.data.path)
-    mean = FloodDataset.mean()[:config.data.in_channels]
-    std = FloodDataset.std()[:config.data.in_channels]
+    mean = dataset_cls.mean()[:config.data.in_channels]
+    std = dataset_cls.std()[:config.data.in_channels]
     # 3 different blocks required:
     # - base is applied to everything (affine transforms mainly)
     # - sar, dem are only applied to the namesake components
@@ -92,17 +95,17 @@ def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
     LOG.info("Train transforms: %s", config.model.transforms)
     LOG.info("Eval. transforms: %s", str(normalize))
     # create train and validation sets
-    train_dataset = FloodDataset(path=data_root,
-                                 subset="train",
-                                 include_dem=config.data.include_dem,
-                                 transform_base=base_trf,
-                                 transform_sar=sar_trf,
-                                 transform_dem=dem_trf,
-                                 normalization=normalize)
-    valid_dataset = FloodDataset(path=data_root,
-                                 subset="val",
-                                 include_dem=config.data.include_dem,
-                                 normalization=normalize)
+    train_dataset = dataset_cls(path=data_root,
+                                subset="train",
+                                include_dem=config.data.include_dem,
+                                transform_base=base_trf,
+                                transform_sar=sar_trf,
+                                transform_dem=dem_trf,
+                                normalization=normalize)
+    valid_dataset = dataset_cls(path=data_root,
+                                subset="val",
+                                include_dem=config.data.include_dem,
+                                normalization=normalize)
     # create a temporary dataset to generate a mask useful to filter all the images
     # for which the amout of segmentation is lower than a given percentage
     if(config.data.mask_body_ratio is not None and config.data.mask_body_ratio > 0):
@@ -159,12 +162,14 @@ def prepare_model(config: TrainConfig, num_classes: int, stage: str = "train") -
                                  norm_layer=cfg.norm,
                                  channels=config.data.in_channels)
     else:
-        # we only support two encoders
+        # we only support at most two encoders, one for SAR, one for DEM
+        # channels are inferred at runtime: we always expect DEM, so SAr channels = total - 1
         assert len(enc_names) == 2, f"Multimodal encoders not supported: {cfg.encoder}"
-        assert config.data.in_channels == 3, "Multimodal approach only works with 3 channels (VV, VH, DEM)"
+        assert config.data.in_channels >= 3, "Multimodal approach only works with 3+ channels (SAR + DEM)"
         LOG.info("Creating a multimodal encoder (%s, %s)", enc_names[0], enc_names[1])
         encoder = create_multi_encoder(sar_name=enc_names[0],
                                        dem_name=enc_names[1],
+                                       channels=config.data.in_channels,
                                        config=cfg,
                                        return_features=False)
     # create decoder: always uses the main encoder as reference

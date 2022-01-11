@@ -102,24 +102,26 @@ class FloodDataset(DatasetBase):
         :return:        image, mask tuple
         :rtype: Tuple[torch.Tensor, torch.Tensor]
         """
+        # read SAR image and corresponding label, augment with SAR-specific processing
         image = imread(self.image_files[index], channels_first=False).astype(np.float32)
         label = imread(self.label_files[index]).squeeze(0).astype(np.uint8)
-        # add digital elevation map as extra channel to the image
+        if self.transform_sar is not None:
+            pair = self.transform_sar(image=image, mask=label)
+            image = pair.get("image")
+            label = pair.get("mask")
+        # if requested, add digital elevation map as extra channel to the image
+        # also transform with DEM-specific augmentations, if any
         if self._include_dem:
             dem = imread(self.dem_files[index], channels_first=False).astype(np.float32)
+            if self.transform_dem is not None:
+                pair = self.transform_dem(image=dem, mask=label)
+                dem = pair.get("image")
+                label = pair.get("mask")
             image = np.dstack((image, dem))
-        # preprocess if required, cast mask to Long for torch losses
+        # last, apply shared transforms (affine transformations) and standardize
         if self.transform_base is not None:
             pair = self.transform_base(image=image, mask=label)
             image = pair.get("image")
-            label = pair.get("mask")
-        if self.transform_sar is not None:
-            pair = self.transform_sar(image=image[:, :, :-1], mask=label)
-            image[:, :, :-1] = pair.get("image")
-            label = pair.get("mask")
-        if self.transform_dem is not None:
-            pair = self.transform_dem(image=image[:, :, -1], mask=label)
-            image[:, :, -1] = pair.get("image")
             label = pair.get("mask")
         if self.normalization:
             pair = self.normalization(image=image, mask=label)
@@ -129,6 +131,12 @@ class FloodDataset(DatasetBase):
 
     def __len__(self) -> int:
         return len(self.image_files)
+
+
+class RGBFloodDataset(FloodDataset):
+    # R, G, B, DEM
+    _mean = (0.485, 0.456, 0.406, 1.4241237e+02)
+    _std = (0.229, 0.224, 0.225, 8.11010422e+01)
 
 
 class WeightedFloodDataset(FloodDataset):

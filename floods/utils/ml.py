@@ -57,20 +57,6 @@ def only_rank(rank: int = 0):
     return decorator
 
 
-# def one_hot(target: torch.Tensor) -> torch.Tensor:
-#     """source: https://github.com/PhoenixDL/rising. Computes one-hot encoding of input tensor.
-#     Args:
-#         target (torch.Tensor): tensor to be converted
-#         num_classes (Optional[int], optional): number of classes. If None, the maximum value of target is used.
-#     Returns:
-#         torch.Tensor: one-hot encoded tensor of the target
-#     """
-
-#     dtype, device = target.dtype, target.device
-#     target_onehot = torch.zeros(*target.shape, dtype=dtype, device=device)
-#     return target_onehot.scatter_(1, target.unsqueeze_(1), 1.0)
-
-
 def find_best_checkpoint(folder: Path, model_name: str = "*.pth", divider: str = "_") -> Path:
     wildcard_path = folder / model_name
     models = list(glob(str(wildcard_path)))

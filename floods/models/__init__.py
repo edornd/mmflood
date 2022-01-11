@@ -53,8 +53,6 @@ def create_encoder(name: str,
     # - ResNets have reductions: 2, 4, 8, 16, 32
     indices = available_decoders[decoder].func.required_indices(encoder=name)
     model = timm.create_model(name, pretrained=pretrained, features_only=True, out_indices=indices, **additional_args)
-    # if channels > 3:
-    #     model = expand_input(model, num_copies=(channels - 3))
     # freeze layers in the encoder if required
     if freeze:
         for param in model.parameters():
@@ -78,7 +76,8 @@ def create_decoder(name: str, input_size: int, feature_info: FeatureInfo, act_la
     return decoder
 
 
-def create_multi_encoder(sar_name: str, dem_name: str, config: ModelConfig, **kwargs: dict) -> MultiEncoder:
+def create_multi_encoder(sar_name: str, dem_name: str, channels: int, config: ModelConfig,
+                         **kwargs: dict) -> MultiEncoder:
     encoder_a = create_encoder(name=sar_name,
                                decoder=config.decoder,
                                pretrained=config.pretrained,
@@ -86,7 +85,7 @@ def create_multi_encoder(sar_name: str, dem_name: str, config: ModelConfig, **kw
                                output_stride=config.output_stride,
                                act_layer=config.act,
                                norm_layer=config.norm,
-                               channels=2)
+                               channels=channels - 1)
     encoder_b = create_encoder(name=dem_name,
                                decoder=config.decoder,
                                pretrained=config.pretrained,

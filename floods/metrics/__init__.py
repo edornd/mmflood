@@ -66,7 +66,7 @@ class ConfusionMatrix(Metric):
         :type target: torch.Tensor
         """
         # assume 0=batch size, 1=classes, 2, 3 = dims
-        partial = func.confusion_matrix(y_true, y_pred, ignore_index=self.ignore_index)
+        partial = func.binary_confusion_matrix(y_true, y_pred, ignore_index=self.ignore_index)
         self.confusion_matrix += partial
 
     def compute(self) -> torch.Tensor:

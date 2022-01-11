@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from accelerate import Accelerator
 from floods.config import TrainConfig
 from floods.logging.tensorboard import TensorBoardLogger
+from floods.models.base import Segmenter
 from floods.prepare import inverse_transform, prepare_datasets, prepare_metrics, prepare_model, prepare_sampler
 from floods.trainer.callbacks import Checkpoint, DisplaySamples, EarlyStopping, EarlyStoppingCriterion
 from floods.trainer.flood import FloodTrainer, MultiBranchTrainer
@@ -39,6 +40,7 @@ def train(config: TrainConfig):
 
     # prepare datasets
     LOG.info("Loading datasets...")
+    num_classes = 1
     train_set, valid_set = prepare_datasets(config=config)
     LOG.info("Full sets - train set: %d samples, validation set: %d samples", len(train_set), len(valid_set))
 
@@ -68,10 +70,12 @@ def train(config: TrainConfig):
                               worker_init_fn=seed_worker)
     # prepare models
     LOG.info("Preparing model...")
-    new_model = prepare_model(config=config).to(accelerator.device)
+    model: Segmenter = prepare_model(config=config, num_classes=num_classes).to(accelerator.device)
 
     # prepare optimizer and scheduler
-    optimizer = config.optimizer.instantiate(new_model.parameters())
+    params = [{"params": model.encoder_params(), "lr": config.optimizer.encoder_lr},
+              {"params": model.decoder_params(), "lr": config.optimizer.decoder_lr}]
+    optimizer = config.optimizer.instantiate(params)
     scheduler = config.scheduler.instantiate(optimizer)
     # prepare losses
     weights = None
@@ -95,7 +99,7 @@ def train(config: TrainConfig):
     # choose the trainer class depending on model and training strategy
     trainer_cls = MultiBranchTrainer if config.model.multibranch else FloodTrainer
     trainer = trainer_cls(accelerator=accelerator,
-                          model=new_model,
+                          model=model,
                           optimizer=optimizer,
                           scheduler=scheduler,
                           criterion=loss,

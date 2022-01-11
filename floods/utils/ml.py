@@ -2,7 +2,7 @@ import random
 import sys
 from glob import glob
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict
 
 import numpy as np
 import torch
@@ -15,7 +15,7 @@ F32_EPS = np.finfo(np.float32).eps
 F16_EPS = np.finfo(np.float16).eps
 
 
-def identity(*args: Any) -> Any:
+def identity(args: Any) -> Any:
     return args
 
 

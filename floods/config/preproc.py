@@ -30,6 +30,7 @@ class PreparationConfig(EnvConfig):
     tile_max_overlap: int = Field(400, description="how much the tiles can overlap before skipping the next one")
     make_context: bool = Field(False, description="Whether to generate the context-based variant of the set")
     decibel: bool = Field(True, description="Apply a log10 transformation to the SAR signal")
+    colorize: bool = Field(False, description="Apply an RGB ratio transformation (decibel takes priority)")
     clip_dem: bool = Field(True, description="Whether to apply min-max normalization to the DEM")
     morphology: bool = Field(True, description="whether to use morphological operators or not")
     morph_kernel: int = Field(5, description="Kernel size for mask preprocessing using opening/closing")

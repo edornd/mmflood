@@ -16,8 +16,13 @@ def filter_encoder_args(encoder: str, pretrained: bool, **kwargs: dict) -> dict:
     parameters don't event exist, thus filter them out.
     """
     exclude = set()
+    # densenets don't support the output stride
+    if encoder.startswith("dense"):
+        exclude = exclude.union(["output_stride"])
+    # tresnets don't support a bunch of things
     if encoder.startswith("tresnet"):
         exclude = exclude.union(["norm_layer", "act_layer", "output_stride"])
+    # efficientnets use a custom normalization process
     if encoder.startswith("efficientnet") or pretrained:
         exclude = exclude.union(["norm_layer", "act_layer"])
     for arg in exclude:
@@ -47,10 +52,6 @@ def create_encoder(name: str,
     # - TResNets have reductions:   4, 8, 16, 32
     # - ResNets have reductions: 2, 4, 8, 16, 32
     indices = available_decoders[decoder].func.required_indices(encoder=name)
-    # Remove output stride if it's a densenet
-    if(name.startswith("dense")):
-        additional_args.pop('output_stride', None)
-        
     model = timm.create_model(name, pretrained=pretrained, features_only=True, out_indices=indices, **additional_args)
     # if channels > 3:
     #     model = expand_input(model, num_copies=(channels - 3))

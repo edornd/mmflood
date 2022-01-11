@@ -72,15 +72,17 @@ class TrainerConfig(BaseSettings):
 
 class OptimizerConfig(InstantiableSettings):
     target: Optimizers = Field(Optimizers.adamw, description="Which optimizer to apply")
-    lr: float = Field(1e-3, description="Learning rate for the optimizer")
+    lr: float = Field(1e-3, description="Global LR, still required to build optimizers")
+    encoder_lr: float = Field(1e-3, description="Learning rate for the encoder branch")
+    decoder_lr: float = Field(1e-3, description="Learning rate for the decoder branch")
     momentum: float = Field(0.9, description="Momentum for SGD")
     weight_decay: float = Field(1e-2, description="Weight decay for the optimizer")
 
     def instantiate(self, *args, **kwargs) -> Any:
-        params = dict(lr=self.lr, weight_decay=self.weight_decay, **kwargs)
+        kwargs = dict(lr=self.lr, weight_decay=self.weight_decay, **kwargs)
         if self.target == Optimizers.sgd:
-            params.update(dict(momentum=self.momentum))
-        return self.target(*args, **params)
+            kwargs.update(dict(momentum=self.momentum))
+        return self.target(*args, **kwargs)
 
 
 class SchedulerConfig(InstantiableSettings):

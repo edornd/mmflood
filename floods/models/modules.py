@@ -10,11 +10,11 @@ class SegmentationHead(Head):
     """Binary segmentation head that simply provides a final 1x1 convolution from an arbitrary
     amount of channels to 1 output channel, for binary segmentation of an image.
     """
-    def __init__(self, in_channels: int, upscale: int = None):
+    def __init__(self, in_channels: int, upscale: int = None, num_classes: int = 1):
         super().__init__(in_channels=in_channels)
         upscale = upscale or 1
         self.upsample = nn.UpsamplingBilinear2d(scale_factor=upscale) if upscale > 1 else nn.Identity()
-        self.reduce = nn.Conv2d(in_channels=in_channels, out_channels=1, kernel_size=1, bias=True)
+        self.reduce = nn.Conv2d(in_channels=in_channels, out_channels=num_classes, kernel_size=1, bias=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.reduce(x)

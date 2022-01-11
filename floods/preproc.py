@@ -141,6 +141,16 @@ def _decibel(data: np.ndarray):
     return np.log10(1 + data + F16_EPS)
 
 
+def _rgb_ratio(data: np.ndarray):
+    """False-color RGB formula taken directly from Sentinel-hub.
+    """
+    vv, vh = data[0], data[1]
+    r = vv / 0.28
+    g = vh / 0.06
+    b = vh / vv / 0.49
+    return np.clip(np.stack((r, g, b), axis=0), 0, 1)
+
+
 def _clip_dem(data: np.ndarray):
     """
         MinMax the DEM between -100 and 6000 meters
@@ -201,12 +211,15 @@ def _process_tiff(image_id: str,
         # given the possible resize, both transform and dimensions need to be updated
         transform = dataset.transform * dataset.transform.scale(dataset.width / width, dataset.height / height)
         profile: dict = dataset.profile
-        profile.update(height=height, width=width)
+        # transform the image to extract the number of channels (it may vary depending on process_fn)
+        processed_img = process_fn(image)
+        channels = processed_img.shape[0]
+        profile.update(height=height, width=width, count=channels)
         # create and open an in-memory file to store results
         # during preprocessing
         with MemoryFile() as memfile:
             with memfile.open(**profile) as processed:
-                processed.write(process_fn(image))
+                processed.write(processed_img)
                 processed.transform = transform
                 generator = tiling_fn(image)
                 # store result, using target raster (which could be either)
@@ -264,7 +277,11 @@ def preprocess_data(config: PreparationConfig):
                 tiler = SingleImageTiler(tile_size=config.tile_size, channels_first=True)
             LOG.info(f"Tiling with {type(tiler).__name__}")
             # prepare preprocessing functions
-            sar_process = _decibel if config.decibel else None
+            sar_process = None
+            if config.decibel:
+                sar_process = _decibel
+            elif config.colorize:
+                sar_process = _rgb_ratio
             dem_process = _clip_dem if config.clip_dem else None
             morph = None if not config.morphology else MorphologyTransform(kernel_size=config.morph_kernel,
                                                                            channels_first=True)

@@ -1,5 +1,6 @@
 from abc import abstractclassmethod, abstractmethod
-from typing import List, Tuple, Type
+from itertools import chain
+from typing import Iterator, List, Tuple, Type
 
 import torch
 from timm.models.features import FeatureInfo
@@ -56,6 +57,12 @@ class Segmenter(nn.Module):
     def freeze(self):
         for param in self.parameters():
             param.requires_grad = False
+
+    def encoder_params(self) -> Iterator[nn.Parameter]:
+        return self.encoder.parameters()
+
+    def decoder_params(self) -> Iterator[nn.Parameter]:
+        return chain(self.decoder.parameters(), self.head.parameters())
 
 
 class MultiBranchSegmenter(Segmenter):

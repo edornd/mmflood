@@ -148,7 +148,7 @@ class WeightedFloodDataset(FloodDataset):
                  transform_sar: Callable = None,
                  transform_dem: Callable = None,
                  normalization: Callable = None,
-                 class_weights: Tuple[int, int, int] = (1.0, 0.5, 5.0)) -> None:
+                 class_weights: Tuple[float, float, float] = (1.0, 0.5, 5.0)) -> None:
         super().__init__(path,
                          subset=subset,
                          include_dem=include_dem,

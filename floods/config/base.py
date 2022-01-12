@@ -2,13 +2,14 @@ from enum import Enum
 from functools import partial
 from typing import Any
 
-from pydantic import BaseSettings
+from pydantic import BaseSettings, Extra
 
 
 class EnvConfig(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = Extra.ignore
 
 
 class CallableEnum(Enum):

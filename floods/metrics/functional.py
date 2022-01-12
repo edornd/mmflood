@@ -24,8 +24,8 @@ def valid_samples(ignore_index: int,
     if y_pred is not None:
         assert y_pred.shape == y_true.shape, f"Shape mismatch: {y_true.shape} </> {y_pred.shape}"
         valid_pred = y_pred[valid_indices]
-        return valid_target.long(), valid_pred.long()
-    return valid_target.long()
+        return valid_target.flatten().long(), valid_pred.flatten().long()
+    return valid_target.flatten().long()
 
 
 def confusion_matrix(y_true: torch.Tensor, y_pred: torch.Tensor, ignore_index: Optional[int] = None) -> torch.Tensor:
@@ -51,6 +51,33 @@ def confusion_matrix(y_true: torch.Tensor, y_pred: torch.Tensor, ignore_index: O
     bins = torch.bincount(unique_labels, minlength=4)
     cm = bins.reshape(2, 2).squeeze().int()
     return cm
+
+
+def binary_confusion_matrix(y_true: torch.Tensor,
+                            y_pred: torch.Tensor,
+                            ignore_index: Optional[int] = None) -> torch.Tensor:
+    """Computes the binary confusion matrix C where each entry C_{i,j} is the number of observations
+    in group i that were predicted in group j.
+
+    Args:
+        y_true (torch.Tensor): ground truth label indices, same format as the predictions.
+        y_pred (torch.Tensor): estimated targets, in 'argmax' format (indices of the predicted classes).
+        ignore_index (Optional[int], optional): index to be ignored, if any. Defaults to None.
+
+    Returns:
+        torch.Tensor: confusion matric C [num_classes, num_classes]
+    """
+    flat_target = y_true.view(-1)
+    flat_pred = y_pred.view(-1)
+    # exclude indices belonging to the ignore_index
+    if ignore_index is not None:
+        flat_target, flat_pred = valid_samples(ignore_index, y_true=y_true, y_pred=y_pred)
+    # use bins to compute the CM
+    tp = (flat_target * flat_pred).sum()
+    tn = ((1 - flat_target) * (1 - flat_pred)).sum()
+    fp = ((1 - flat_target) * flat_pred).sum()
+    fn = (flat_target * (1 - flat_pred)).sum()
+    return torch.tensor([[tn, fp], [fn, tp]]).type(torch.int64)
 
 
 def statistics_from_one_hot(y_true: torch.Tensor,

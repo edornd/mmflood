@@ -1,12 +1,11 @@
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 import torch
 
 from floods.logging.functional import make_grid, mask_to_rgb
 from floods.utils.common import get_logger, prepare_folder
-from floods.utils.gis import rgb_ratio
 
 if TYPE_CHECKING:
     from floods.trainer.base import Trainer
@@ -160,12 +159,14 @@ class Checkpoint(BaseCallback):
 class DisplaySamples(BaseCallback):
     def __init__(self,
                  inverse_transform: Callable,
-                 color_palette: Dict[int, tuple],
+                 mask_palette: Dict[int, tuple],
+                 image_transform: Optional[Callable] = None,
                  call_every: int = 1,
                  stage: str = "val") -> None:
         super().__init__(call_every=call_every)
         self.inverse_transform = inverse_transform
-        self.color_palette = color_palette
+        self.image_transform = image_transform
+        self.color_palette = mask_palette
         self.stage = stage
 
     def setup(self, trainer: "Trainer"):
@@ -177,7 +178,8 @@ class DisplaySamples(BaseCallback):
             LOG.warn("No content to be displayed")
         for i, (image, y_true, y_pred) in enumerate(trainer.sample_content):
             image = self.inverse_transform(image)
-            image = rgb_ratio(sar_image=image)
+            if self.image_transform is not None:
+                image = self.image_transform(image[:, :, :-1])
             true_masks = mask_to_rgb(y_true.numpy(), palette=self.color_palette)
             pred_masks = mask_to_rgb(y_pred.numpy(), palette=self.color_palette)
             grid = make_grid(image, true_masks, pred_masks)

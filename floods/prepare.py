@@ -65,13 +65,11 @@ def inverse_transform(mean: tuple, std: tuple):
     return Denormalize(mean=mean, std=std)
 
 
-def prepare_datasets(config: TrainConfig) -> Tuple[DatasetBase, DatasetBase]:
+def prepare_datasets(config: TrainConfig, use_rgb: bool = False) -> Tuple[DatasetBase, DatasetBase]:
     # sanity check: least channels = 2, (vv, vh only), max. channels = 4 (rgb ratio + DEM)
     assert config.data.in_channels >= 2 and config.data.in_channels <= 4, \
         f"Declared channels: {config.data.in_channels} not supported"
     # pick which dataset to use, depending on configuration
-    # either 4 - 1, or 3 - 0
-    use_rgb = (config.data.in_channels - int(config.data.include_dem)) == 3
     dataset_cls = RGBFloodDataset if use_rgb else FloodDataset
 
     # instantiate transforms for training and evaluation

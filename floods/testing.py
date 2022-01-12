@@ -7,13 +7,14 @@ from torch.utils.data import DataLoader
 from accelerate import Accelerator
 from floods.config.testing import TestConfig
 from floods.config.training import TrainConfig
-from floods.datasets.flood import FloodDataset
+from floods.datasets.flood import FloodDataset, RGBFloodDataset
 from floods.logging.functional import plot_confusion_matrix
 from floods.logging.tensorboard import TensorBoardLogger
 from floods.prepare import eval_transforms, inverse_transform, prepare_model, prepare_test_metrics
 from floods.trainer.callbacks import DisplaySamples
 from floods.trainer.flood import FloodTrainer
 from floods.utils.common import check_or_make_dir, get_logger, init_experiment, load_config, print_config
+from floods.utils.gis import as_image, rgb_ratio
 from floods.utils.ml import find_best_checkpoint, load_class_weights, seed_everything, seed_worker
 from floods.utils.tiling import SmoothTiler
 
@@ -40,18 +41,21 @@ def test(test_config: TestConfig):
     seed_everything(config.seed)
     # prepare evaluation transforms
     LOG.info("Loading test dataset...")
-    num_classes = len(FloodDataset.categories())
-    test_transform = eval_transforms(mean=FloodDataset.mean(),
-                                     std=FloodDataset.std(),
+    num_classes = 1
+    # RGB is needed with either 4 - 1, or 3 - 0
+    use_rgb = (config.data.in_channels - int(config.data.include_dem)) == 3
+    dataset_cls = RGBFloodDataset if use_rgb else FloodDataset
+    test_transform = eval_transforms(mean=dataset_cls.mean(),
+                                     std=dataset_cls.std(),
                                      clip_max=30,
                                      clip_min=-30)
 
     LOG.debug("Eval. transforms: %s", str(test_transform))
     # create the test dataset
-    test_dataset = FloodDataset(path=Path(config.data.path),
-                                subset="test",
-                                include_dem=config.data.include_dem,
-                                normalization=test_transform)
+    test_dataset = dataset_cls(path=Path(config.data.path),
+                               subset="test",
+                               include_dem=config.data.include_dem,
+                               normalization=test_transform)
     test_loader = DataLoader(dataset=test_dataset,
                              batch_size=1,  # fixed at 1 because in test we have full-size images
                              shuffle=False,
@@ -100,8 +104,10 @@ def test(test_config: TestConfig):
                            sample_batches=num_samples,
                            stage="test",
                            debug=test_config.debug)
+    image_trf = as_image if use_rgb else rgb_ratio
     trainer.add_callback(DisplaySamples(inverse_transform=inverse_transform(test_dataset.mean(), test_dataset.std()),
-                                        color_palette=test_dataset.palette(),
+                                        mask_palette=test_dataset.palette(),
+                                        image_transform=image_trf,
                                         stage="test"))
     # prepare testing metrics, same as validation with the addition of a confusion matrix
     eval_metrics = prepare_test_metrics(config=test_config, device=accelerator.device)

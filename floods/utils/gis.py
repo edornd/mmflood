@@ -75,6 +75,9 @@ def rgb_ratio(sar_image: np.ndarray,
     vh = sar_image[:, :, 1]
     a, b, c = weights
     rgb = np.stack((a * vv, b * vh, c * (vv / vh)), axis=-1)
-    image = np.clip(rgb, 0, 1)
-    image = (image * scale).astype(dtype)
-    return image
+    return as_image(rgb, scale=scale, dtype=dtype)
+
+
+def as_image(array: np.ndarray, scale: float = 255, dtype: np.dtype = np.uint8) -> np.ndarray:
+    image = np.clip(array, 0, 1)
+    return (image * scale).astype(dtype)

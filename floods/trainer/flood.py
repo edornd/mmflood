@@ -3,7 +3,6 @@ from typing import Any, Callable, Dict
 
 import torch
 from torch import nn
-from torch.nn import functional as func
 from torch.optim import Optimizer
 
 from accelerate import Accelerator
@@ -77,9 +76,9 @@ class FloodTrainer(Trainer):
         # also, we take just the first one, a lil bit hardcoded i know
         # TODO: better sampling from batches
         if self.sample_batches is not None and batch_index in self.sample_batches:
-            y_pred = (torch.sigmoid(y_pred) > 0.5).int()
+            preds = (torch.sigmoid(y_pred) > 0.5).int()
             images = self.accelerator.gather(x)
-            self._store_samples(images[:1], y_pred[:1], y_true[:1].int())
+            self._store_samples(images[:1], preds[:1], y_true[:1].int())
         # update metrics and return losses
         self._update_metrics(y_true=y_true, y_pred=y_pred, stage=TrainerStage.val)
         return loss, {}
@@ -150,8 +149,9 @@ class MultiBranchTrainer(FloodTrainer):
         # also, we take just the first one, a lil bit hardcoded i know
         # TODO: better sampling from batches
         if self.sample_batches is not None and batch_index in self.sample_batches:
+            preds = (torch.sigmoid(y_pred) > 0.5).int()
             images = self.accelerator.gather(x)
-            self._store_samples(images[:1], y_pred[:1], y_true[:1])
+            self._store_samples(images[:1], preds[:1], y_true[:1])
         # update metrics and return losses
         self._update_metrics(y_true=y_true, y_pred=y_pred, stage=TrainerStage.val)
         return loss, {}

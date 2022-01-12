@@ -11,6 +11,7 @@ from floods.prepare import inverse_transform, prepare_datasets, prepare_metrics,
 from floods.trainer.callbacks import Checkpoint, DisplaySamples, EarlyStopping, EarlyStoppingCriterion
 from floods.trainer.flood import FloodTrainer, MultiBranchTrainer
 from floods.utils.common import flatten_config, get_logger, git_revision_hash, init_experiment, store_config
+from floods.utils.gis import as_image, rgb_ratio
 from floods.utils.ml import load_class_weights, seed_everything, seed_worker
 
 LOG = get_logger(__name__)
@@ -40,8 +41,11 @@ def train(config: TrainConfig):
 
     # prepare datasets
     LOG.info("Loading datasets...")
+    # num_classes is hardcoded to 1 for the time being
     num_classes = 1
-    train_set, valid_set = prepare_datasets(config=config)
+    # RGB is needed with either 4 - 1, or 3 - 0
+    use_rgb = (config.data.in_channels - int(config.data.include_dem)) == 3
+    train_set, valid_set = prepare_datasets(config=config, use_rgb=use_rgb)
     LOG.info("Full sets - train set: %d samples, validation set: %d samples", len(train_set), len(valid_set))
 
     # prepare accelerator ASAP (but not too soon, or it breaks the dataset masking)
@@ -110,6 +114,7 @@ def train(config: TrainConfig):
                           sample_batches=num_samples,
                           debug=config.debug)
 
+    image_trf = as_image if use_rgb else rgb_ratio
     trainer.add_callback(EarlyStopping(call_every=1,
                                        metric=monitored,
                                        criterion=EarlyStoppingCriterion.maximum,
@@ -119,7 +124,8 @@ def train(config: TrainConfig):
                                     model_folder=model_folder,
                                     save_best=True)) \
            .add_callback(DisplaySamples(inverse_transform=inverse_transform(mean=train_set.mean(), std=train_set.std()),
-                                        color_palette=train_set.palette()))
+                                        image_transform=image_trf,
+                                        mask_palette=train_set.palette()))
 
     # storing config and starting training
     config.version = git_revision_hash()

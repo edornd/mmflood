@@ -125,6 +125,7 @@ def train(config: TrainConfig):
                                     save_best=True)) \
            .add_callback(DisplaySamples(inverse_transform=inverse_transform(mean=train_set.mean(), std=train_set.std()),
                                         image_transform=image_trf,
+                                        slice_at=config.data.in_channels - int(config.data.include_dem),
                                         mask_palette=train_set.palette()))
 
     # storing config and starting training

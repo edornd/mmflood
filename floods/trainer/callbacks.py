@@ -161,12 +161,14 @@ class DisplaySamples(BaseCallback):
                  inverse_transform: Callable,
                  mask_palette: Dict[int, tuple],
                  image_transform: Optional[Callable] = None,
+                 slice_at: int = -1,
                  call_every: int = 1,
                  stage: str = "val") -> None:
         super().__init__(call_every=call_every)
         self.inverse_transform = inverse_transform
         self.image_transform = image_transform
         self.color_palette = mask_palette
+        self.slice_at = slice_at
         self.stage = stage
 
     def setup(self, trainer: "Trainer"):
@@ -179,7 +181,7 @@ class DisplaySamples(BaseCallback):
         for i, (image, y_true, y_pred) in enumerate(trainer.sample_content):
             image = self.inverse_transform(image)
             if self.image_transform is not None:
-                image = self.image_transform(image[:, :, :-1])
+                image = self.image_transform(image[:, :, :self.slice_at])
             true_masks = mask_to_rgb(y_true.numpy(), palette=self.color_palette)
             pred_masks = mask_to_rgb(y_pred.numpy(), palette=self.color_palette)
             grid = make_grid(image, true_masks, pred_masks)

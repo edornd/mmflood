@@ -6,7 +6,7 @@ import pytest
 import torch
 from sklearn import metrics as skm
 
-from floods.metrics import ConfusionMatrix, F1Score, GeneralStatistics, IoU, Precision, Recall
+from floods.metrics import ConfusionMatrix, F1Score, GeneralStatistics, IoU, Precision, Recall, lenient_sigmoid
 
 LOG = logging.getLogger(__name__)
 EPS = 1e-6
@@ -60,6 +60,28 @@ def test_generic_stats(inputs: torch.Tensor, preds: torch.Tensor, expected: list
 
 
 @pytest.mark.parametrize(PYTEST_PARAMETERS, PYTEST_VALUES)
+def test_random_continuous_matrix_stats_2D(seed: int, reduction: str):
+    torch.manual_seed(seed)
+
+    rand_gt = (torch.rand((512, 512)) > 0.5).type(torch.int)
+    rand_pred = (torch.rand(rand_gt.shape) - torch.rand(rand_gt.shape)) * 5
+    rand_pred_discrete = lenient_sigmoid(rand_pred)[0]
+
+    metric = GeneralStatistics(reduction=reduction)
+    metric(rand_gt, rand_pred)
+    result = metric.compute()
+    tp, fp, tn, fn = result[:4]
+
+    sk_tn, sk_fp, sk_fn, sk_tp = skm.confusion_matrix(rand_gt.numpy().flatten(),
+                                                      rand_pred_discrete.numpy().flatten(),
+                                                      labels=[0, 1]).flatten()
+
+    assert tp.numpy() == sk_tp
+    assert tn.numpy() == sk_tn
+    assert fp.numpy() == sk_fp
+    assert fn.numpy() == sk_fn
+
+@pytest.mark.parametrize(PYTEST_PARAMETERS, PYTEST_VALUES)
 def test_random_matrix_stats_2D(seed: int, reduction: str):
     torch.manual_seed(seed)
 
@@ -68,8 +90,8 @@ def test_random_matrix_stats_2D(seed: int, reduction: str):
     rand_gt = random_gt((512, 512))
     rand_pred = random_pred(rand_gt)
 
-    assert torch.max(rand_gt) == 1 and torch.min(rand_gt) == 0
-    assert torch.max(rand_pred) == 1 and torch.min(rand_pred) == 0
+    assert torch.max(rand_gt) == 1 and torch.min(rand_gt) == 0 and torch.unique(rand_gt).shape[0] == 2
+    assert torch.max(rand_pred) == 1 and torch.min(rand_pred) == 0 and torch.unique(rand_pred).shape[0] == 2
 
     metric = GeneralStatistics(reduction=reduction)
     metric(rand_gt, rand_pred)

@@ -77,7 +77,7 @@ def binary_confusion_matrix(y_true: torch.Tensor,
     tn = ((1 - flat_target) * (1 - flat_pred)).sum()
     fp = ((1 - flat_target) * flat_pred).sum()
     fn = (flat_target * (1 - flat_pred)).sum()
-    return torch.tensor([[tn, fp], [fn, tp]]).type(torch.int64)
+    return torch.tensor([[tn, fp], [fn, tp]], device=y_pred.device, dtype=torch.int64)
 
 
 def statistics_from_one_hot(y_true: torch.Tensor,

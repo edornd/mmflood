@@ -217,8 +217,10 @@ def prepare_test_metrics(config: TestConfig, device: torch.device) -> Dict[str, 
     # include class-wise metrics
     test_metrics.update(dict(precision=Precision(reduction=None, device=device),
                              recall=Recall(reduction=None, device=device),
-                             class_iou=IoU(reduction=None, device=device),
-                             class_f1=F1Score(reduction=None, device=device)))
+                             fg_iou=IoU(reduction=None, device=device),
+                             fg_f1=F1Score(reduction=None, device=device),
+                             bg_iou=IoU(reduction=None, device=device, background=True),
+                             bg_f1=F1Score(reduction=None, device=device, background=True)))
     # include a confusion matrix
     test_metrics.update(dict(conf_mat=ConfusionMatrix(device=device)))
     return test_metrics

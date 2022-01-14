@@ -52,6 +52,8 @@ def create_encoder(name: str,
     # - TResNets have reductions:   4, 8, 16, 32
     # - ResNets have reductions: 2, 4, 8, 16, 32
     indices = available_decoders[decoder].func.required_indices(encoder=name)
+    if (name.startswith("dense")):
+        additional_args.pop('act_layer')
     model = timm.create_model(name, pretrained=pretrained, features_only=True, out_indices=indices, **additional_args)
     # freeze layers in the encoder if required
     if freeze:

@@ -81,6 +81,7 @@ def test_random_continuous_matrix_stats_2D(seed: int, reduction: str):
     assert fp.numpy() == sk_fp
     assert fn.numpy() == sk_fn
 
+
 @pytest.mark.parametrize(PYTEST_PARAMETERS, PYTEST_VALUES)
 def test_random_matrix_stats_2D(seed: int, reduction: str):
     torch.manual_seed(seed)
@@ -161,6 +162,26 @@ def test_F1_score(seed: int, reduction: str):
 
 
 @pytest.mark.parametrize(PYTEST_PARAMETERS, PYTEST_VALUES)
+def test_F1_score_background(seed: int, reduction: str):
+
+    # rand_gt is a random 2D matrix
+    # rand_pred is a pertubation of rand_gt, where only about 10% of the elements are different
+    torch.manual_seed(seed)
+    rand_gt = random_gt((512, 512))
+    rand_pred = random_pred(rand_gt)
+
+    metric = F1Score(ignore_index=255, reduction=reduction, background=True)
+    metric(rand_gt, rand_pred)
+    result = metric.compute()
+
+    rand_gt = np.abs(1 - rand_gt)
+    rand_pred = np.abs(1 - rand_pred)
+    skm_result = skm.f1_score(rand_gt.numpy().flatten(), rand_pred.numpy().flatten(), average="binary")
+    LOG.debug("%.4f - %.4f", result, skm_result)
+    np.testing.assert_allclose(result, skm_result, atol=EPS)
+
+
+@pytest.mark.parametrize(PYTEST_PARAMETERS, PYTEST_VALUES)
 def test_IoU(seed: int, reduction: str):
 
     # rand_gt is a random 2D matrix
@@ -173,6 +194,26 @@ def test_IoU(seed: int, reduction: str):
     metric(rand_gt, rand_pred)
     result = metric.compute()
 
+    skm_result = skm.jaccard_score(rand_gt.numpy().flatten(), rand_pred.numpy().flatten(), average="binary")
+    LOG.debug("%.4f - %.4f", result, skm_result)
+    np.testing.assert_allclose(result, skm_result, atol=EPS)
+
+
+@pytest.mark.parametrize(PYTEST_PARAMETERS, PYTEST_VALUES)
+def test_IoU_background(seed: int, reduction: str):
+
+    # rand_gt is a random 2D matrix
+    # rand_pred is a pertubation of rand_gt, where only about 10% of the elements are different
+    torch.manual_seed(seed)
+    rand_gt = random_gt((512, 512))
+    rand_pred = random_pred(rand_gt)
+
+    metric = IoU(ignore_index=255, reduction=reduction, background=True)
+    metric(rand_gt, rand_pred)
+    result = metric.compute()
+
+    rand_gt = np.abs(1 - rand_gt)
+    rand_pred = np.abs(1 - rand_pred)
     skm_result = skm.jaccard_score(rand_gt.numpy().flatten(), rand_pred.numpy().flatten(), average="binary")
     LOG.debug("%.4f - %.4f", result, skm_result)
     np.testing.assert_allclose(result, skm_result, atol=EPS)

@@ -131,13 +131,13 @@ def test(test_config: TestConfig):
         elif name != "conf_mat":
             classwise[name] = score
 
-    LOG.info("Class-wise results:")
-    header = f"{'score':<20s}  " + "|".join([f"{label:<15s}" for label in trainer.categories.values()])
-    LOG.info(header)
-    for i, (name, score) in enumerate(classwise.items()):
-        scores_str = [f"{v:.4f}" for v in score]
-        scores_str = "|".join(f"{s:<15s}" for s in scores_str)
-        LOG.info(f"{name:<20s}: {scores_str}")
+    # LOG.info("Class-wise results:")
+    # header = f"{'score':<20s}  " + "|".join([f"{label:<15s}" for label in trainer.categories.values()])
+    # LOG.info(header)
+    # for i, (name, score) in enumerate(classwise.items()):
+    #     scores_str = [f"{v:.4f}" for v in score]
+    #     scores_str = "|".join(f"{s:<15s}" for s in scores_str)
+    #     LOG.info(f"{name:<20s}: {scores_str}")
 
     LOG.info("Plotting confusion matrix...")
     cm_name = f"cm_{Path(ckpt_path).stem}"

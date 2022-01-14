@@ -90,12 +90,14 @@ class GeneralStatistics(Metric):
                  ignore_index: Optional[int] = 255,
                  reduction: Optional[str] = "micro",
                  transform: Callable = lenient_sigmoid,
-                 device: str = "cpu") -> None:
+                 device: str = "cpu",
+                 background: bool = False) -> None:
         super().__init__(transform=transform, device=device)
         self.ignore_index = ignore_index
         self.reduction = reduction
         self.reduce_first = reduction == "micro"
         self.should_reduce = reduction is not None
+        self.background = background
         self.reset()
 
     def update(self, y_true: torch.Tensor, y_pred: torch.Tensor) -> None:
@@ -190,7 +192,10 @@ class F1Score(GeneralStatistics):
         Returns:
             torch.Tensor: tensor with empty size when reduced, or (C,) where C in the number of classes
         """
-        score = func.f1_score(tp=self.tp, fp=self.fp, fn=self.fn, reduce=self.reduce_first)
+        if self.background:
+            score = func.f1_score(tp=self.tn, fp=self.fn, fn=self.fp, reduce=self.reduce_first)
+        else:
+            score = func.f1_score(tp=self.tp, fp=self.fp, fn=self.fn, reduce=self.reduce_first)
         return score.mean() if self.should_reduce else score
 
 
@@ -204,5 +209,8 @@ class IoU(GeneralStatistics):
         Returns:
             torch.Tensor: IoU vector, if divided by class, or a mean value (macro/micro averaged)
         """
-        score = func.iou_score(tp=self.tp, fp=self.fp, fn=self.fn, reduce=self.reduce_first)
+        if self.background:
+            score = func.iou_score(tp=self.tn, fp=self.fn, fn=self.fp, reduce=self.reduce_first)
+        else:
+            score = func.iou_score(tp=self.tp, fp=self.fp, fn=self.fn, reduce=self.reduce_first)
         return score.mean() if self.should_reduce else score

@@ -1,3 +1,4 @@
+import hashlib
 from typing import Any, List, Optional
 
 from inplace_abn import InPlaceABN, InPlaceABNSync
@@ -112,17 +113,24 @@ class LossConfig(InstantiableSettings):
 class DatasetConfig(EnvConfig):
     path: str = Field(required=True, description="Path to the dataset")
     in_channels: int = Field(3, description="How many input channels, including extras")
-    include_dem: bool = Field(True, description="whether to include the DEM as extra input")
+    include_dem: bool = Field(False, description="whether to include the DEM as extra input")
     class_weights: str = Field(None, description="Optional path to a class weight array (npy format)")
     mask_body_ratio: float = Field(None, description="Percentage of ones in the mask before discarding the tile")
     weighted_sampling: bool = Field(False, description="Whether to sample images based on flooded ratio")
     sample_smoothing: float = Field(0.8, description="Value between 0 and 1 to smooth out the weights (1 = None)")
+    cache_hash: str = Field(None, description="Overwritten hash generated for cache from specific configuration")
+
+    @validator("cache_hash")
+    def post_load(cls, v, values, **kwargs):
+        sha = hashlib.sha1(str(values).encode('utf-8'))
+        hash = sha.hexdigest()
+        return hash
 
 
 class ModelConfig(EnvConfig):
     encoder: str = Field("resnet34", description="Which backbone to use (see timm library)")
-    decoder: str = Field("PSPDenseNet", description="Which decoder to apply")
-    pretrained: bool = Field(True, description="Whether to use a pretrained encoder or not")
+    decoder: str = Field("pspnet", description="Which decoder to apply")
+    pretrained: bool = Field(False, description="Whether to use a pretrained encoder or not")
     freeze: bool = Field(False, description="Freeze the feature extractor in incremental steps")
     multibranch: bool = Field(False, description="Includes an additional low-res output, right after the encoder")
     output_stride: int = Field(16, description="Output stride for ResNet-like models")

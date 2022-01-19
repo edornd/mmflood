@@ -120,13 +120,14 @@ def tile_body_water_ratio(image: np.ndarray, label_index: int = 1, smoothing: Op
     return (flood_pixels + factor) / (len(nan_filtered) + factor)
 
 
-def mask_body_ratio_from_threshold(labels: List[Path], ratio_threshold: float, label: str) -> np.ndarray:
+def mask_body_ratio_from_threshold(labels: List[Path], ratio_threshold: float, label: str,
+                                   cache_hash: str) -> np.ndarray:
     """
     Returns a binary mask with the images having a body water ratio above the threshold.
     """
     # for each mask in the path read the image array and get the tile body water ratio
     assert len(labels) > 0, "No masks found in the path"
-    target_file = Path("data") / f"mask_{label}_t{ratio_threshold:.2f}.npy"
+    target_file = Path("data/cache") / f"mask_{label}_{cache_hash}.npy"
 
     # early out if the mask array has been cached already
     if target_file.exists() and target_file.is_file():

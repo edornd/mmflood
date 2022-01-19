@@ -45,8 +45,10 @@ def test(test_config: TestConfig):
     # RGB is needed with either 4 - 1, or 3 - 0
     use_rgb = (config.data.in_channels - int(config.data.include_dem)) == 3
     dataset_cls = RGBFloodDataset if use_rgb else FloodDataset
-    test_transform = eval_transforms(mean=dataset_cls.mean(),
-                                     std=dataset_cls.std(),
+    mean = dataset_cls.mean()[:config.data.in_channels]
+    std = dataset_cls.std()[:config.data.in_channels]
+    test_transform = eval_transforms(mean=mean,
+                                     std=std,
                                      clip_max=30,
                                      clip_min=-30)
 

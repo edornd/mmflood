@@ -111,7 +111,8 @@ def prepare_datasets(config: TrainConfig, use_rgb: bool = False) -> Tuple[Datase
         # we are directly iterating filenames to avoid transforms
         train_imgs_mask, train_counts = mask_body_ratio_from_threshold(labels=train_dataset.label_files,
                                                                        ratio_threshold=config.data.mask_body_ratio,
-                                                                       label="train")
+                                                                       label="train",
+                                                                       cache_hash=config.data.cache_hash)
         train_dataset.add_mask(train_imgs_mask)
         LOG.info("Filtering training set with %d images", len(train_imgs_mask))
         LOG.info(f"Number of elements kept: {train_counts[1]}")
@@ -119,7 +120,8 @@ def prepare_datasets(config: TrainConfig, use_rgb: bool = False) -> Tuple[Datase
         # get and apply mask to the validation set
         val_imgs_mask, val_counts = mask_body_ratio_from_threshold(labels=valid_dataset.label_files,
                                                                    ratio_threshold=config.data.mask_body_ratio,
-                                                                   label="val")
+                                                                   label="val",
+                                                                   cache_hash=config.data.cache_hash)
         valid_dataset.add_mask(val_imgs_mask)
         LOG.info("Filtering validation set with %d images", len(val_imgs_mask))
         LOG.info(f"Number of elements kept: {val_counts[1]}")
@@ -128,9 +130,8 @@ def prepare_datasets(config: TrainConfig, use_rgb: bool = False) -> Tuple[Datase
     return train_dataset, valid_dataset
 
 
-def prepare_sampler(data_root: str, dataset: FloodDataset, smoothing: float = 0.8) -> WeightedRandomSampler:
-    data_name = Path(data_root).stem
-    target_file = Path("data") / f"{data_name}_sample-weights_smooth-{smoothing:.2f}.npy"
+def prepare_sampler(dataset: FloodDataset, cache_hash: str, smoothing: float = 0.8) -> WeightedRandomSampler:
+    target_file = Path("data/cache") / f"sample-weights_{cache_hash}.npy"
     if target_file.exists() and target_file.is_file():
         LOG.info("Found an existing array of sample weights")
         weights = np.load(str(target_file))

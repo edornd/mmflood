@@ -55,11 +55,12 @@ def train(config: TrainConfig):
     # construct data loaders with samplers (shuffle and sampler are mutually exclusive)
     training_shuffle = True
     training_sampler = None
+    
     if config.data.weighted_sampling:
         training_shuffle = False
-        training_sampler = prepare_sampler(data_root=config.data.path,
-                                           dataset=train_set,
-                                           smoothing=config.data.sample_smoothing)
+        training_sampler = prepare_sampler(dataset=train_set,
+                                           smoothing=config.data.sample_smoothing,
+                                           cache_hash=config.data.cache_hash)
     train_loader = DataLoader(dataset=train_set,
                               sampler=training_sampler,
                               batch_size=config.trainer.batch_size,

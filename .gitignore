@@ -136,3 +136,4 @@ accelerate
 accelerate/*
 *.sh
 ./setup.cfg
+archive

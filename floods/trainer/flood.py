@@ -6,9 +6,7 @@ from torch import nn
 from torch.optim import Optimizer
 
 from accelerate import Accelerator
-from floods.datasets.flood import FloodDataset
 from floods.logging import BaseLogger
-from floods.logging.functional import save_grid
 from floods.metrics import Metric
 from floods.trainer import Trainer, TrainerStage
 
@@ -102,11 +100,17 @@ class FloodTrainer(Trainer):
         # store samples for visualization, if required.
         if output_path:
             if self.sample_batches is None or batch_index in self.sample_batches:
-                save_grid(x[0],
-                          y[0].int(), (torch.sigmoid(y_pred[0]) > 0.5).int(),
-                          filepath=output_path,
-                          filename=f"{batch_index:06d}",
-                          palette=FloodDataset.palette())
+                self._store_samples(x, (torch.sigmoid(y_pred) > 0.5).int(), y.int())
+                self.callbacks[0](self, filepath=output_path, filename=f"{batch_index:06d}-0")
+                self.sample_content = []
+                # save_grid(
+                #     x[0],
+                #     y[0].int(),
+                #     (torch.sigmoid(y_pred[0]) > 0.5).int(),
+                #     filepath=output_path,
+                #     filename=f"{batch_index:06d}",
+                #     palette=FloodDataset.palette(),
+                # )
                 # store only some selected samples
         # update metrics and return losses
         self._update_metrics(y_true=y, y_pred=y_pred, stage=TrainerStage.test)

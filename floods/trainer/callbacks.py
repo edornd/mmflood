@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 import torch
+from matplotlib import pyplot as plt
 
 from floods.logging.functional import make_grid, mask_to_rgb
 from floods.utils.common import get_logger, prepare_folder
@@ -175,7 +176,7 @@ class DisplaySamples(BaseCallback):
         if trainer.sample_batches is None or len(trainer.sample_batches) == 0:
             LOG.warn("An ImagePlotter callback is active, but no samples have been found, have you set them?")
 
-    def call(self, trainer: "Trainer", *args: Any, **kwargs: Any) -> Any:
+    def call(self, trainer: "Trainer", *args: Any, filepath: str = None, filename: str = None, **kwargs: Any) -> Any:
         if not trainer.sample_content:
             LOG.warn("No content to be displayed")
         for i, (image, y_true, y_pred) in enumerate(trainer.sample_content):
@@ -185,7 +186,10 @@ class DisplaySamples(BaseCallback):
             true_masks = mask_to_rgb(y_true.numpy(), palette=self.color_palette)
             pred_masks = mask_to_rgb(y_pred.numpy(), palette=self.color_palette)
             grid = make_grid(image, true_masks, pred_masks)
-            trainer.logger.log_image(f"{self.stage}/sample-{i}", image=grid, step=trainer.current_epoch)
+            if filepath:
+                plt.imsave(filepath / f"{filename}.png", grid)
+            else:
+                trainer.logger.log_image(f"{self.stage}/sample-{i}", image=grid, step=trainer.current_epoch)
 
     def dispose(self, trainer: "Trainer"):
         trainer.sample_content.clear()

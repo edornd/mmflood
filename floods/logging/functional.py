@@ -1,13 +1,12 @@
 from pathlib import Path
-from typing import Dict, List
+from typing import Callable, Dict, List
 
 import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 from torch import Tensor
 
-from floods.transforms import Denormalize
-from floods.utils.gis import rgb_ratio
+from floods.utils.ml import identity
 
 
 def plot_confusion_matrix(cm: np.ndarray,
@@ -72,15 +71,20 @@ def save_grid(inputs: Tensor,
               filepath: Path,
               filename: str,
               palette: Dict[int, tuple],
-              offset: int = 0) -> None:
+              offset: int = 0,
+              inverse_transform: Callable = identity,
+              image_transform: Callable = None) -> None:
     assert targets.shape == preds.shape, f"Shapes not matching: {targets.shape}, {preds.shape}"
     assert inputs.ndim >= 3, "Image must be at least a 3-channel tensor (channels first)"
     if inputs.ndim == 4:
         for i in range(inputs.shape[0]):
             save_grid(inputs[i], targets[i], preds[i], filepath=filepath, filename=filename, palette=palette, offset=i)
     else:
-        image = Denormalize()(inputs)
-        image = rgb_ratio(image)
+        image = inverse_transform(inputs)
+        if image_transform is not None:
+            image = image_transform(image)
+        # image = Denormalize()(inputs)
+        # image = rgb_ratio(image)
         # targets and predictions still have a channel dim
         if targets.ndim > 2:
             targets = targets.squeeze(0)

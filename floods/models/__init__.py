@@ -90,8 +90,8 @@ def create_multi_encoder(sar_name: str, dem_name: str, channels: int, config: Mo
                                channels=channels - 1)
     encoder_b = create_encoder(name=dem_name,
                                decoder=config.decoder,
-                               pretrained=config.pretrained,
-                               freeze=config.freeze,
+                               pretrained=False,
+                               freeze=False,
                                output_stride=config.output_stride,
                                act_layer=config.act,
                                norm_layer=config.norm,

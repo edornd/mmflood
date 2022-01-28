@@ -107,10 +107,11 @@ def test(test_config: TestConfig):
                            stage="test",
                            debug=test_config.debug)
     image_trf = as_image if use_rgb else rgb_ratio
+    slice_at = config.data.in_channels - int(config.data.include_dem)
     trainer.add_callback(DisplaySamples(inverse_transform=inverse_transform(test_dataset.mean(), test_dataset.std()),
                                         mask_palette=test_dataset.palette(),
                                         image_transform=image_trf,
-                                        slice_at=config.data.in_channels - int(config.data.include_dem),
+                                        slice_at=slice_at,
                                         stage="test"))
     # prepare testing metrics, same as validation with the addition of a confusion matrix
     eval_metrics = prepare_test_metrics(config=test_config, device=accelerator.device)

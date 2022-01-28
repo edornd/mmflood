@@ -8,7 +8,7 @@ from torch import Tensor
 
 class Denormalize:
 
-    def __init__(self, mean: Sequence[float] = (0.485, 0.456, 0.406), std: Sequence[float] = (0.229, 0.224, 0.225)):
+    def __init__(self, mean: Sequence[float], std: Sequence[float]):
         self.mean = torch.tensor(mean)
         self.std = torch.tensor(std)
 

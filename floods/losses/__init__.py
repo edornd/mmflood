@@ -8,6 +8,7 @@ from floods.losses.functional import lovasz_hinge
 
 
 class BCEWithLogitsLoss(nn.Module):
+
     def __init__(self, reduction: str = "mean", ignore_index: int = 255, weight: torch.Tensor = None, **kwargs: dict):
         super(BCEWithLogitsLoss, self).__init__()
         self.reduction = reduction
@@ -27,16 +28,23 @@ class BCEWithLogitsLoss(nn.Module):
 class CombinedLoss(nn.Module):
     """Simply combines two losses into a single one, with weights.
     """
-    def __init__(self, criterion_a: Callable, criterion_b: Callable, alpha: float = 0.5, **kwargs: dict):
+
+    def __init__(self,
+                 criterion_a: Callable,
+                 criterion_b: Callable,
+                 weight_a: float = 1.0,
+                 weight_b: float = 1.0,
+                 **kwargs: dict):
         super().__init__()
         self.criterion_a = criterion_a(**kwargs)
         self.criterion_b = criterion_b(**kwargs)
-        self.alpha = alpha
+        self.weight_a = weight_a
+        self.weight_b = weight_b
 
     def forward(self, preds: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         loss_a = self.criterion_a(preds, targets)
         loss_b = self.criterion_b(preds, targets)
-        return self.alpha * loss_a + (1 - self.alpha) * loss_b
+        return self.weight_a * loss_a + self.weight_b * loss_b
 
 
 class FocalLoss(nn.Module):
@@ -44,6 +52,7 @@ class FocalLoss(nn.Module):
     The focal loss can be seen as a generalization of the cross entropy, where more effort is put on
     hard examples, thanks to its gamma parameter.
     """
+
     def __init__(self,
                  reduction: str = "mean",
                  ignore_index: int = 255,
@@ -72,6 +81,7 @@ class FocalLoss(nn.Module):
 class FocalTverskyLoss(nn.Module):
     """Custom implementation of a generalized Dice loss (called Tversky loss) with focal components.
     """
+
     def __init__(self,
                  alpha: float = 0.6,
                  beta: float = 0.4,
@@ -106,6 +116,7 @@ class FocalTverskyLoss(nn.Module):
 
 
 class LovaszSoftmax(nn.Module):
+
     def __init__(self, classes='present', per_image=True, ignore_index=255, weight=None):
         super(LovaszSoftmax, self).__init__()
         self.smooth = classes

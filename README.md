@@ -95,7 +95,7 @@ Every image also contains the following contextual information, as GDAL metadata
 
 To run this code, simply clone it into a directory of choice and create a python environment.
 ```bash
-git clone git@github.com:edornd/flood-segmentation.git && cd flood-segmentation
+git clone git@github.com:edornd/mmflood.git && cd mmflood
 python3 -m venv .venv
 pip install -r requirements.txt
 ```

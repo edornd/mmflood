@@ -104,12 +104,12 @@ Everything goes through the `run` command.
 Run `python run.py --help` for more information about commands and their arguments.
 
 
-## Data preparation
+### Data preparation
 To prepare the raw data by tiling and preprocessing, you can run:
 `python run.py prepare --data-source [PATH_TO_ACTIVATIONS] --data-processed [DESTINATION]`
 
 
-## Training
+### Training
 Training uses HuggingFace `accelerate` to provide single-gpu and multi-gpu support.
 To launch on a single GPU:
 ```bash
@@ -117,7 +117,7 @@ CUDA_VISIBLE_DEVICES=... python run.py train [ARGS]
 ```
 You can find an example script with parameters in [the scripts folder.](scripts/train.sh)
 
-# Testing
+### Testing
 Testing is run on non-tiled images (the preprocessing will format them without tiling).
 You can run the test on a single GPU using the `test` command.
 At the very least, you need to point the script to the output directory.
@@ -126,3 +126,10 @@ You can also avoid storing outputs with `--no-store-predictions`.
 ```bash
 CUDA_VISIBLE_DEVICES=... python run.py test --data-root [PATH_TO_OUTPUT_DIR] [--checkpoint-path [PATH]]
 ```
+
+# Data Attribution and Licenses
+For the realization of this project, the following data sources were used:
+- Copernicus EMS ([Manual](https://emergency.copernicus.eu/mapping/sites/default/files/files/JRCTechnicalReport_2020_Manual%20for%20Rapid%20Mapping%20Products_final.pdf))
+- Copernicus Sentinel-1 ([License](https://sentinels.copernicus.eu/documents/247904/690755/Sentinel_Data_Legal_Notice))
+- MapZen/TileZen Elevation ([License](https://github.com/tilezen/joerd/blob/master/docs/attribution.md))
+- OpenStreetMap water layers ([License](https://www.openstreetmap.org/copyright))

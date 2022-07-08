@@ -8,7 +8,9 @@ Code and data access for the MMFlood dataset.
 
 ## Dataset Access and Specifications
 
-You can download the MMFlood dataset from Zenodo, at the following link: [https://zenodo.org/record/6534637](https://zenodo.org/record/6534637)
+You can download the MMFlood dataset:
+- from Zenodo: [https://zenodo.org/record/6534637](https://zenodo.org/record/6534637)
+- from IEEE Dataport: [https://ieee-dataport.org/documents/mmflood-multimodal-dataset-flood-delineation-satellite-imagery](https://ieee-dataport.org/documents/mmflood-multimodal-dataset-flood-delineation-satellite-imagery)
 
 ### Structure
 The dataset is organized in directories, with a JSON file providing metadata and other information such as the split configuration we selected.

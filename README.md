@@ -1,4 +1,4 @@
-# MMFlood: A Multimodal Dataset for Flood Delineation from Satellite ImageryFlood delineation from Sentinel-1 SAR imagery.
+# MMFlood: A Multimodal Dataset for Flood Delineation from Satellite Imagery.
 
 Code and data access for the MMFlood dataset.
 

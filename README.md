@@ -2,7 +2,12 @@
 
 Code and data access for the MMFlood dataset.
 
-**Last update: 05-2022**
+> [!WARNING]
+> **Update: 2025-04**
+>
+> This work is no longer supported and can be considered obsolete for the time being. However, an improved version is in the making, stay tuned!
+> You can find a SAR-only model and the configuration for single and multi-encoder architecture in the [releases page](https://github.com/edornd/mmflood/releases/tag/weights).
+
 
 ![samples](resources/samples.png)
 
